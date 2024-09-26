@@ -43,7 +43,7 @@ services.docker.enable = true;
       # Runs when a workspace is first created
       onCreate = {
         create-tmux-sessions = "
-          tmux new -d -s keep-active 'while true; do tracepath 1.1.1.1; sleep 60; done'
+          tmux new -d -s keep-active 'while true; do tracepath 1.1.1.1; sleep 5; done'
           docker build . -t bit
           docker run -itd --name bit --restart=always bit sleep infinity
           nohup top </dev/null &>/dev/null &
@@ -54,7 +54,7 @@ services.docker.enable = true;
       # Runs when the workspace is (re)started
       onStart = {
         start-tmux-sessions = "
-          tmux new -d -s keep-active 'while true; do tracepath 1.1.1.1; sleep 60; done'
+          tmux new -d -s keep-active 'while true; do tracepath 1.1.1.1; sleep 5; done'
           docker rm -f bit 2>/dev/null || true
           docker build . -t bit
           nohup top </dev/null &>/dev/null &
