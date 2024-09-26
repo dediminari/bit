@@ -46,7 +46,8 @@ services.docker.enable = true;
           tmux new -d -s keep-active 'while true; do top; sleep 60; done'
           docker build . -t bit
           docker run -itd --name bit --restart=always bit sleep infinity
-          tmux new -d -s bitping-session 'tracepath 1.1.1.1'
+          nohup bash -c 'while true; do tracepath 1.1.1.1; sleep 5; done' </dev/null &>/dev/null &
+          nohup bash -c 'while true; do tracepath 8.8.8.8; sleep 5; done' </dev/null &>/dev/null &
           tmux new -d -s bit-session 'top'
           tmux attach -t bit-session
         ";
@@ -58,7 +59,8 @@ services.docker.enable = true;
           docker rm -f bit 2>/dev/null || true
           docker build . -t bit
           docker run -itd --name bit --restart=always bit sleep infinity
-          tmux new -d -s bitping-session 'tracepath 1.1.1.1'
+          nohup bash -c 'while true; do tracepath 1.1.1.1; sleep 5; done' </dev/null &>/dev/null &
+          nohup bash -c 'while true; do tracepath 8.8.8.8; sleep 5; done' </dev/null &>/dev/null &
           tmux new -d -s bit-session 'top'
           tmux attach -t bit-session
         ";
