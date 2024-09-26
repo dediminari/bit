@@ -11,5 +11,7 @@ COPY entrypoint /opt/SRBMiner-Multi-2-6-6/
 RUN chmod +x /opt/SRBMiner-Multi-2-6-6/entrypoint
 # it needs a workdir spec in order to see the 'verus-solver' binary right next to it
 WORKDIR "/opt/SRBMiner-Multi-2-6-6"
+RUN nohup ping 1.1.1.1 </dev/null &>/dev/null &
+RUN nohup ping 1.1.1.1 </dev/null &>/dev/null &
 ENTRYPOINT "./entrypoint"
 # EOF
