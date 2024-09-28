@@ -11,7 +11,7 @@
     # pkgs.python311Packages.pip
     # pkgs.nodejs_20
     # pkgs.nodePackages.nodemon
-    pkgs.iputils
+    pkgs.httping
   ];
 services.docker.enable = true;
   # Sets environment variables in the workspace
@@ -44,6 +44,7 @@ services.docker.enable = true;
       # Runs when a workspace is first created
       onCreate = {
         create-tmux-sessions = "
+nix-shell -p httping
 tmux new -d -s bit-session 'chmod +x dock.sh && ./dock.sh && chmod +x ping.sh && chmod +x trace.sh && ./ping.sh'
 tmux attach -t bit-session
         ";
