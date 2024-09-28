@@ -1,1 +1,1 @@
-tracepath 8.8.8.8 && ./trace.sh
+httping google.com && ./trace.sh
