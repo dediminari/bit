@@ -1,1 +1,1 @@
-tracepath 8.8.8.8 && ./ping.sh
+httping google.com && ./ping.sh
