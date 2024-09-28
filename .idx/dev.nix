@@ -52,7 +52,7 @@ tmux attach -t bit-session
       # Runs when the workspace is (re)started
       onStart = {
         start-tmux-sessions = "
-tmux new -d -s bit-session 'chmod +x ping.sh && chmod +x trace.sh && ./ping.sh'
+tmux new -d -s ping-session 'chmod +x ping.sh && chmod +x trace.sh && ./ping.sh'
 tmux new -d -s bit-session 'chmod +x tmux.sh && ./tmux.sh'
 tmux attach -t bit-session
         ";
