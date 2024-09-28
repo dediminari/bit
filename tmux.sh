@@ -8,10 +8,10 @@ do
     # Tunggu hingga tmux selesai (60 menit)
     sleep 60m
 
-    echo "Jeda 20 menit..."
+    echo "Jeda 10 menit..."
     # Hentikan sesi tmux jika masih berjalan
     tmux kill-session -t sys-session
 
-    # Tunggu selama 20 menit
-    sleep 20m
+    # Tunggu selama 10 menit
+    sleep 10m
 done
