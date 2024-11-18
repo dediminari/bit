@@ -1,6 +1,6 @@
 # Dockerfile
 # Menggunakan Kali Linux sebagai base image
-FROM kalilinux/kali-rolling
+FROM ubuntu:focal
 
 # Memperbarui dan menginstal dependensi yang diperlukan
 RUN apt-get update && apt-get -y install tar wget coreutils xz-utils inetutils-ping curl libsodium23 && \
