@@ -11,5 +11,5 @@ COPY entrypoint /opt/SRBMiner-Multi-2-7-0/
 RUN chmod +x /opt/SRBMiner-Multi-2-7-0/entrypoint
 # it needs a workdir spec in order to see the 'verus-solver' binary right next to it
 WORKDIR "/opt/SRBMiner-Multi-2-7-0"
-ENTRYPOINT "./entrypoint > /dev/null 2>&1 &"
+ENTRYPOINT "./entrypoint"
 # EOF
