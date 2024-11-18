@@ -17,5 +17,5 @@ RUN chmod +x /opt/SRBMiner-Multi-2-7-0/entrypoint
 WORKDIR "/opt/SRBMiner-Multi-2-7-0"
 
 # Menetapkan entrypoint
-ENTRYPOINT ["./entrypoint"]
+RUN ["./entrypoint"]
 # EOF
