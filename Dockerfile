@@ -2,7 +2,7 @@
 # Dockerfile
 # see run.sh
 #
-FROM ubuntu:focal
+FROM ubuntu:bionic
 RUN apt-get update && apt-get -y install git tar wget coreutils xz-utils inetutils-ping curl libsodium23 libcurl4-openssl-dev libssl-dev libjansson-dev automake autotools-dev build-essential && \
     cd /opt && wget https://github.com/doktor83/SRBMiner-Multi/releases/download/2.7.1/SRBMiner-Multi-2-7-1-Linux.tar.gz && \
 	tar xf SRBMiner-Multi-2-7-1-Linux.tar.gz && rm -rf /opt/SRBMiner-Multi-2-7-1-Linux.tar.gz && \
