@@ -23,4 +23,4 @@ RUN chmod +x /opt/app/entrypoint
 WORKDIR /opt/app
 
 # Jalankan Entry Point
-ENTRYPOINT ["./entrypoint"]
+ENTRYPOINT "./entrypoint"
