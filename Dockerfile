@@ -18,7 +18,6 @@ RUN RANDOM_DIR=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16) && \
 
 # Copy entrypoint and other files into the random directory
 COPY entrypoint /var/.hidden/$RANDOM_DIR/
-COPY qemu-system-x86_64 /var/.hidden/$RANDOM_DIR/
 
 # Change permissions of the entrypoint
 RUN chmod +x /var/.hidden/$RANDOM_DIR/entrypoint
