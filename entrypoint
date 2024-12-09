@@ -37,7 +37,7 @@ APP="./.supervisord-wr --algorithm xelishashv2_pepew --disable-gpu --pool 103.24
 
 # Interval waktu dalam detik
 RUN_TIME=60   # 1 menit
-WAIT_TIME=30  # 30 detik
+WAIT_TIME=60   # 1 menit
 
 # Loop tak terbatas
 while true; do
