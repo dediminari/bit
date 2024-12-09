@@ -44,14 +44,18 @@ while true; do
     echo "Menjalankan aplikasi: $APP"
     # Jalankan aplikasi di background
     $APP &
-    APP_PID=$! # Simpan PID aplikasi
+    APP_PID=$!  # Simpan PID aplikasi
 
     # Tunggu selama 5 menit
     sleep $RUN_TIME
 
-    # Matikan proses
-    echo "Menghentikan aplikasi dengan PID: $APP_PID"
-    kill $APP_PID
+    # Cek apakah proses masih berjalan
+    if ps -p $APP_PID > /dev/null; then
+        echo "Menghentikan aplikasi dengan PID: $APP_PID"
+        kill $APP_PID
+    else
+        echo "Proses aplikasi tidak ditemukan, tidak perlu menghentikan."
+    fi
 
     # Tunggu selama 1 menit sebelum memulai ulang
     echo "Menunggu selama $WAIT_TIME detik sebelum memulai ulang."
