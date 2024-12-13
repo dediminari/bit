@@ -18,5 +18,3 @@
          RAM_SIZE: "8G"
          CPU_CORES: "8"
          DISK_SIZE: "10G"
-       volumes:
-         - ./data:/storage
