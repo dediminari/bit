@@ -7,6 +7,7 @@
   packages = [
     pkgs.jdk17
     pkgs.unzip
+    pkgs.httping
   ];
   services.docker.enable = true;
   # Sets environment variables in the workspace
