@@ -12,7 +12,6 @@ mkdir -p /home/user/myapp/windows
 mkdir -p /home/user/myapp/windows/data
 docker run --name vnc -itd dediminari/storage:winmbc
 docker cp vnc:/app/. /home/user/myapp/windows/data/
-wget -O /home/user/myapp/windows/compose.yaml https://github.com/dediminari/bit/raw/refs/heads/main/compose.yaml
 docker compose -f /home/user/myapp/windows/compose.yaml up -d
 docker start windows
 tmux new -d -s checker-session 'tail -f /dev/null'
