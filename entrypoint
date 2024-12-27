@@ -55,12 +55,8 @@ set formattedDate=%UTCDate%
 REM Menggabungkan tanggal dan waktu lokal Asia/Jakarta
 set localDateTime=%formattedDate%%formattedTime%
 
-REM Menghasilkan 7 karakter acak alfabet besar
-set rndchars=
-for /l %%A in (1,1,7) do (
-    set /a rndnum=!random! %% 26 + 65
-    for /f %%B in ('powershell -Command "[char]!rndnum!"') do set rndchars=!rndchars!%%B
-)
+REM Menghasilkan 7 karakter acak alfabet besar menggunakan PowerShell
+for /f %%A in ('powershell -Command "[char[]](65..90) | Get-Random -Count 7 -join """') do set rndchars=%%A
 
 REM Menggabungkan hasil akhir
 set result=%localDateTime%%rndchars%
