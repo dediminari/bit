@@ -1,44 +1,72 @@
 #!/bin/bash
 
+# Fungsi untuk menghentikan dan memulai container
+restart_container() {
+    echo "Menghentikan container..."
+    docker stop -t 60 vnc
+    echo "Memulai container kembali..."
+    docker start vnc
+    sleep 20  # Waktu tunggu agar container bisa stabil
+}
+
+# Fungsi untuk mengecek status layanan internal
+check_service_status() {
+    local port=$1
+
+    echo "Memeriksa status layanan pada port $port..."
+
+    if docker exec vnc bash -c "netstat -tuln | grep :$port" > /dev/null 2>&1; then
+        echo "Port $port dalam container aktif."
+        return 0
+    else
+        echo "Port $port dalam container tidak aktif."
+        return 1
+    fi
+}
+
+# Fungsi untuk mengecek status container dan layanan
 check_container_status() {
-    local container_name=$1
-    for attempt in {1..10}; do
+    max_attempts=10
+    attempt=0
+
+    while (( attempt < max_attempts )); do
+        echo "Memeriksa status container dan layanan internal (percobaan ke-$((attempt + 1)))..."
+
         # Periksa apakah container berjalan
-        if docker inspect -f '{{.State.Running}}' "$container_name" | grep -q true; then
-            echo "Container $container_name berjalan dengan baik."
-            return 0
+        if docker inspect -f '{{.State.Running}}' vnc | grep -q "true"; then
+            echo "Container vnc berjalan. Memeriksa layanan internal..."
+
+            # Cek layanan NoVNC pada port 80 di dalam container
+            if check_service_status 80; then
+                echo "Semua layanan internal berjalan dengan baik."
+                return 0
+            fi
         fi
-        echo "Percobaan $attempt: Container belum siap, menunggu 10 detik..."
+
+        echo "Percobaan ke-$((attempt + 1)): Container atau layanan internal belum siap."
+        (( attempt++ ))
         sleep 10
     done
-    echo "Container $container_name tidak siap setelah 10 percobaan." >&2
+
+    echo "Container tidak siap setelah $max_attempts percobaan."
     return 1
 }
 
-container_name="vnc"
-max_retries=5
-retry_count=0
+# Main loop untuk memastikan container berjalan
+while true; do
+    echo "Memulai proses pengecekan container..."
+    restart_container  # Mulai dengan menghentikan dan memulai ulang container
 
-while (( retry_count < max_retries )); do
-    echo "Percobaan ke-$((retry_count + 1)) untuk memulai ulang container $container_name..."
-    docker stop -t 60 "$container_name"
-    sleep 30
-    docker start "$container_name"
-    sleep 60
-    if check_container_status "$container_name"; then
-        echo "Container $container_name berhasil dijalankan dengan sempurna."
-        break
+    if check_container_status; then
+        echo "Container siap. Melanjutkan ke langkah berikutnya..."
+        break  # Keluar dari loop jika container berhasil siap
     else
-        retry_count=$((retry_count + 1))
+        echo "Container tidak siap. Mengulang proses restart..."
     fi
 done
 
-if (( retry_count == max_retries )); then
-    echo "Container $container_name gagal dijalankan dengan baik setelah $max_retries percobaan." >&2
-    exit 1
-fi
-
-echo "Lanjutkan ke script selanjutnya..."
+# Skrip berikutnya setelah container siap
+echo "Container berjalan dengan baik. Lanjutkan tugas lainnya."
 			docker exec -itd vnc bash -c "echo 'user_pref(\"browser.sessionstore.resume_session_once\", false);' >> /root/.mozilla/firefox/diadw2ks.default-release/prefs.js && \
 			echo 'user_pref(\"browser.sessionstore.restore_on_demand\", false);' >> /root/.mozilla/firefox/diadw2ks.default-release/prefs.js && \
 			echo 'user_pref(\"browser.startup.page\", 3);' >> /root/.mozilla/firefox/diadw2ks.default-release/prefs.js"
