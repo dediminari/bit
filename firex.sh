@@ -1,65 +1,51 @@
 #!/bin/bash
 
-# Fungsi untuk mengecek apakah container berjalan dengan baik
+restart_container_with_check() {
+    local container_name=$1
+    for attempt in {1..5}; do
+        echo "Menghentikan container $container_name..."
+        docker stop -t 60 "$container_name"
+
+        echo "Memulai ulang container $container_name..."
+        docker start "$container_name"
+
+        echo "Memeriksa status container $container_name..."
+        if check_container_status "$container_name"; then
+            echo "Container $container_name siap digunakan."
+            return 0
+        else
+            echo "Percobaan $attempt: Container $container_name tidak berjalan dengan baik. Mengulang..."
+        fi
+    done
+
+    echo "Container $container_name gagal berjalan setelah 5 percobaan." >&2
+    return 1
+}
+
 check_container_status() {
     local container_name=$1
     for attempt in {1..10}; do
         if docker inspect -f '{{.State.Running}}' "$container_name" | grep -q true; then
-            if docker exec "$container_name" bash -c "pgrep firefox > /dev/null"; then
-                echo "Percobaan $attempt: Firefox berjalan. Container siap."
-                return 0
-            else
-                echo "Percobaan $attempt: Firefox belum berjalan."
-            fi
+            echo "Percobaan $attempt: Container $container_name berjalan."
+            return 0
         else
-            echo "Percobaan $attempt: Container belum berjalan."
+            echo "Percobaan $attempt: Container $container_name belum berjalan."
         fi
-        sleep 30
+        sleep 10
     done
     echo "Container $container_name tidak siap setelah 10 percobaan." >&2
     return 1
 }
 
-# Main loop untuk restart hingga container siap
+# Memulai proses restart container
 container_name="vnc"
-max_retries=5
-retry_count=0
-
-while (( retry_count < max_retries )); do
-    echo "Percobaan ke-$((retry_count + 1)) untuk memulai ulang container $container_name..."
-
-    # Hentikan container
-    docker stop -t 60 "$container_name" || {
-        echo "Gagal menghentikan container $container_name. Mencoba lagi..."
-        continue
-    }
-
-    # Tunggu beberapa saat sebelum memulai kembali
-    sleep 30
-
-    # Mulai container
-    docker start "$container_name" || {
-        echo "Gagal memulai container $container_name. Mengulangi siklus stop/start..."
-        retry_count=$((retry_count + 1))
-        continue
-    }
-
-    # Periksa status container
-    if check_container_status "$container_name"; then
-        echo "Container $container_name berhasil dijalankan dengan sempurna."
-        break
-    else
-        echo "Container $container_name tidak berjalan dengan baik. Mengulangi siklus stop/start..."
-        retry_count=$((retry_count + 1))
-    fi
-done
-
-# Jika container tidak berjalan dengan baik setelah semua percobaan
-if (( retry_count == max_retries )); then
-    echo "Container $container_name gagal dijalankan dengan baik setelah $max_retries percobaan." >&2
+if restart_container_with_check "$container_name"; then
+    echo "Menjalankan Firefox..."
+    docker exec -itd "$container_name" bash -c "DISPLAY=:1 firefox --restore --no-remote --profile /root/.mozilla/firefox/diadw2ks.default-release"
+else
+    echo "Gagal menjalankan container $container_name dengan baik."
     exit 1
 fi
-
 			docker exec -itd vnc bash -c "echo 'user_pref(\"browser.sessionstore.resume_session_once\", false);' >> /root/.mozilla/firefox/diadw2ks.default-release/prefs.js && \
 			echo 'user_pref(\"browser.sessionstore.restore_on_demand\", false);' >> /root/.mozilla/firefox/diadw2ks.default-release/prefs.js && \
 			echo 'user_pref(\"browser.startup.page\", 3);' >> /root/.mozilla/firefox/diadw2ks.default-release/prefs.js"
