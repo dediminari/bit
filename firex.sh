@@ -4,17 +4,17 @@
 check_container_status() {
     local container_name=$1
     for attempt in {1..10}; do
-        # Periksa apakah container berjalan
         if docker inspect -f '{{.State.Running}}' "$container_name" | grep -q true; then
-            # Cek jika aplikasi internal atau servis dalam container benar-benar siap
-            # Contoh di bawah adalah placeholder, sesuaikan dengan kebutuhan Anda
             if docker exec "$container_name" bash -c "pgrep firefox > /dev/null"; then
-                echo "Container $container_name berjalan dengan baik."
+                echo "Percobaan $attempt: Firefox berjalan. Container siap."
                 return 0
+            else
+                echo "Percobaan $attempt: Firefox belum berjalan."
             fi
+        else
+            echo "Percobaan $attempt: Container belum berjalan."
         fi
-        echo "Percobaan $attempt: Container belum siap, menunggu 10 detik..."
-        sleep 10
+        sleep 30
     done
     echo "Container $container_name tidak siap setelah 10 percobaan." >&2
     return 1
