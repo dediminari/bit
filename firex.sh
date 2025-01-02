@@ -2,10 +2,9 @@
 
 # Fungsi untuk menghentikan dan memulai ulang container
 restart_container() {
-    echo "Menghentikan container..."
-    docker stop -t 60 vnc
     echo "Memulai container kembali..."
-    docker start vnc
+    docker restart -t 60 vnc
+    docker restart -t 60 vnc
     sleep 20  # Waktu tunggu agar container bisa stabil
 }
 
