@@ -9,6 +9,31 @@ restart_container() {
     sleep 20  # Waktu tunggu agar container bisa stabil
 }
 
+# Fungsi untuk mengecek status kesehatan container
+check_health_status() {
+    echo "Memeriksa status kesehatan container..."
+    health_status=$(docker inspect -f '{{.State.Health.Status}}' vnc 2>/dev/null)
+
+    case "$health_status" in
+        "healthy")
+            echo "Container dalam status sehat."
+            return 0
+            ;;
+        "unhealthy")
+            echo "Container dalam status tidak sehat!"
+            return 1
+            ;;
+        "starting")
+            echo "Container sedang dalam status 'starting', menunggu hingga status berubah..."
+            return 2
+            ;;
+        *)
+            echo "Container tidak memiliki status kesehatan atau belum siap."
+            return 3
+            ;;
+    esac
+}
+
 # Fungsi untuk mengecek status layanan internal berdasarkan port
 check_service_status() {
     local port=$1
@@ -21,23 +46,6 @@ check_service_status() {
     else
         echo "Port $port dalam container tidak aktif."
         return 1
-    fi
-}
-
-# Fungsi untuk mengecek status kesehatan container
-check_health_status() {
-    echo "Memeriksa status kesehatan container..."
-    health_status=$(docker inspect -f '{{.State.Health.Status}}' vnc 2>/dev/null)
-
-    if [[ "$health_status" == "healthy" ]]; then
-        echo "Container dalam status sehat."
-        return 0
-    elif [[ "$health_status" == "unhealthy" ]]; then
-        echo "Container dalam status tidak sehat!"
-        return 1
-    else
-        echo "Container tidak memiliki status kesehatan atau belum siap."
-        return 2
     fi
 }
 
@@ -54,13 +62,19 @@ check_container_status() {
             echo "Container vnc berjalan. Memeriksa layanan internal dan kesehatan..."
 
             # Cek status kesehatan container
-            if check_health_status; then
+            check_health_status
+            health_code=$?
+            if [[ $health_code -eq 0 ]]; then
                 # Cek layanan NoVNC pada port 80 di dalam container
                 if check_service_status 80; then
                     echo "Semua layanan internal berjalan dengan baik."
                     return 0
                 fi
+            elif [[ $health_code -eq 2 ]]; then
+                echo "Container masih 'starting'. Menunggu status berubah..."
             fi
+        else
+            echo "Container tidak berjalan."
         fi
 
         echo "Percobaan ke-$((attempt + 1)): Container atau layanan internal belum siap."
