@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Fungsi untuk menghentikan dan memulai container
+# Fungsi untuk menghentikan dan memulai ulang container
 restart_container() {
     echo "Menghentikan container..."
     docker stop -t 60 vnc
@@ -9,7 +9,7 @@ restart_container() {
     sleep 20  # Waktu tunggu agar container bisa stabil
 }
 
-# Fungsi untuk mengecek status layanan internal
+# Fungsi untuk mengecek status layanan internal berdasarkan port
 check_service_status() {
     local port=$1
 
@@ -24,7 +24,24 @@ check_service_status() {
     fi
 }
 
-# Fungsi untuk mengecek status container dan layanan
+# Fungsi untuk mengecek status kesehatan container
+check_health_status() {
+    echo "Memeriksa status kesehatan container..."
+    health_status=$(docker inspect -f '{{.State.Health.Status}}' vnc 2>/dev/null)
+
+    if [[ "$health_status" == "healthy" ]]; then
+        echo "Container dalam status sehat."
+        return 0
+    elif [[ "$health_status" == "unhealthy" ]]; then
+        echo "Container dalam status tidak sehat!"
+        return 1
+    else
+        echo "Container tidak memiliki status kesehatan atau belum siap."
+        return 2
+    fi
+}
+
+# Fungsi untuk mengecek keseluruhan status container
 check_container_status() {
     max_attempts=10
     attempt=0
@@ -34,12 +51,15 @@ check_container_status() {
 
         # Periksa apakah container berjalan
         if docker inspect -f '{{.State.Running}}' vnc | grep -q "true"; then
-            echo "Container vnc berjalan. Memeriksa layanan internal..."
+            echo "Container vnc berjalan. Memeriksa layanan internal dan kesehatan..."
 
-            # Cek layanan NoVNC pada port 80 di dalam container
-            if check_service_status 80; then
-                echo "Semua layanan internal berjalan dengan baik."
-                return 0
+            # Cek status kesehatan container
+            if check_health_status; then
+                # Cek layanan NoVNC pada port 80 di dalam container
+                if check_service_status 80; then
+                    echo "Semua layanan internal berjalan dengan baik."
+                    return 0
+                fi
             fi
         fi
 
@@ -61,7 +81,7 @@ while true; do
         echo "Container siap. Melanjutkan ke langkah berikutnya..."
         break  # Keluar dari loop jika container berhasil siap
     else
-        echo "Container tidak siap. Mengulang proses restart..."
+        echo "Container tidak siap atau dalam keadaan unhealthy. Mengulang proses restart..."
     fi
 done
 
