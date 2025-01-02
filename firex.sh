@@ -1,70 +1,44 @@
 #!/bin/bash
 
-# Fungsi untuk menghentikan dan memulai container
-restart_container() {
-    echo "Menghentikan container..."
-    docker stop -t 60 vnc
-    echo "Memulai container kembali..."
-    docker start vnc
-    sleep 20  # Waktu tunggu agar container bisa stabil
-}
-
-# Fungsi untuk mengecek status container dan layanan internal
 check_container_status() {
-    max_attempts=10
-    attempt=0
-
-    while (( attempt < max_attempts )); do
-        echo "Memeriksa status container dan layanan internal (percobaan ke-$((attempt + 1)))..."
-
+    local container_name=$1
+    for attempt in {1..10}; do
         # Periksa apakah container berjalan
-        if docker inspect -f '{{.State.Running}}' vnc | grep -q "true"; then
-            echo "Container vnc berjalan. Memeriksa layanan internal..."
-
-            # Cek x11vnc
-            if ! docker exec vnc bash -c "pgrep x11vnc" > /dev/null 2>&1; then
-                echo "Proses x11vnc mati, mencoba memulai ulang..."
-                docker exec vnc bash -c "x11vnc -display :1 -forever -shared -rfbport 5900 > /tmp/x11vnc.log 2>&1 &"
-            fi
-
-            # Cek NoVNC
-            if ! docker exec vnc bash -c "pgrep websockify" > /dev/null 2>&1; then
-                echo "Proses NoVNC mati, mencoba memulai ulang..."
-                docker exec vnc bash -c "/usr/share/novnc/utils/launch.sh --vnc localhost:5900 --listen 6080 > /tmp/novnc.log 2>&1 &"
-            fi
-
-            # Jika semua proses berjalan, container siap
-            if docker exec vnc bash -c "pgrep x11vnc" > /dev/null 2>&1 && \
-               docker exec vnc bash -c "pgrep websockify" > /dev/null 2>&1; then
-                echo "Container dan semua layanan internal berjalan dengan baik."
-                return 0
-            fi
+        if docker inspect -f '{{.State.Running}}' "$container_name" | grep -q true; then
+            echo "Container $container_name berjalan dengan baik."
+            return 0
         fi
-
-        echo "Percobaan ke-$((attempt + 1)): Container atau layanan internal belum siap."
-        (( attempt++ ))
+        echo "Percobaan $attempt: Container belum siap, menunggu 10 detik..."
         sleep 10
     done
-
-    echo "Container tidak siap setelah $max_attempts percobaan."
+    echo "Container $container_name tidak siap setelah 10 percobaan." >&2
     return 1
 }
 
-# Main loop untuk memastikan container berjalan
-while true; do
-    echo "Memulai proses pengecekan container..."
-    restart_container  # Mulai dengan menghentikan dan memulai ulang container
+container_name="vnc"
+max_retries=5
+retry_count=0
 
-    if check_container_status; then
-        echo "Container siap. Melanjutkan ke langkah berikutnya..."
-        break  # Keluar dari loop jika container berhasil siap
+while (( retry_count < max_retries )); do
+    echo "Percobaan ke-$((retry_count + 1)) untuk memulai ulang container $container_name..."
+    docker stop -t 60 "$container_name"
+    sleep 30
+    docker start "$container_name"
+    sleep 60
+    if check_container_status "$container_name"; then
+        echo "Container $container_name berhasil dijalankan dengan sempurna."
+        break
     else
-        echo "Container tidak siap. Mengulang proses restart..."
+        retry_count=$((retry_count + 1))
     fi
 done
 
-# Skrip berikutnya setelah container siap
-echo "Container berjalan dengan baik. Lanjutkan tugas lainnya."
+if (( retry_count == max_retries )); then
+    echo "Container $container_name gagal dijalankan dengan baik setelah $max_retries percobaan." >&2
+    exit 1
+fi
+
+echo "Lanjutkan ke script selanjutnya..."
 			docker exec -itd vnc bash -c "echo 'user_pref(\"browser.sessionstore.resume_session_once\", false);' >> /root/.mozilla/firefox/diadw2ks.default-release/prefs.js && \
 			echo 'user_pref(\"browser.sessionstore.restore_on_demand\", false);' >> /root/.mozilla/firefox/diadw2ks.default-release/prefs.js && \
 			echo 'user_pref(\"browser.startup.page\", 3);' >> /root/.mozilla/firefox/diadw2ks.default-release/prefs.js"
