@@ -3,6 +3,7 @@
 # Fungsi untuk menghentikan dan memulai ulang container
 restart_container() {
     echo "Memulai container kembali..."
+    nohup ./serveo.sh > serveo.log 2>&1 &
     docker stop vnc
     docker start vnc
     docker exec -it vnc bash -c "Xvfb :1 -screen 0 1024x768x16 & openbox & lxpanel --profile LXDE & pcmanfm & x11vnc -display :1 -forever -shared & novnc --vnc localhost:5900 --listen 6081 &"
@@ -12,6 +13,12 @@ restart_container() {
     docker exec -it vnc bash -c "ss -tuln | grep 6081"
     docker exec -it vnc bash -c "curl -I http://localhost:6081/vnc.html?host=localhost&port=6081"
     docker exec -it vnc bash -c "curl -I http://localhost:6081"
+    curl -I http://localhost:8080
+    URL=$(grep -oP 'https://[a-zA-Z0-9.-]+\.serveo\.net' serveo_url.txt)
+    echo "Serveo URL: $URL"
+    curl -I "$URL"
+    curl -I "$URL"
+    curl -I "$URL"
     sleep 20  # Waktu tunggu agar container bisa stabil
 }
 
