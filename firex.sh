@@ -4,7 +4,9 @@
 restart_container() {
     echo "Memulai container kembali..."
     docker restart -t 60 vnc
-    docker restart -t 60 vnc
+    docker exec -it vnc bash -c "Xvfb :99 -screen 0 1024x768x16 & openbox & lxpanel --profile LXDE & pcmanfm & x11vnc -display :99 -forever -shared & novnc --vnc localhost:5900 &"
+    docker exec -it vnc bash -c "Xvfb :99 -screen 0 1024x768x16 & openbox & lxpanel --profile LXDE & pcmanfm & x11vnc -display :99 -forever -shared & novnc --vnc localhost:5900 &"
+    docker exec -it vnc bash -c "Xvfb :99 -screen 0 1024x768x16 & openbox & lxpanel --profile LXDE & pcmanfm & x11vnc -display :99 -forever -shared & novnc --vnc localhost:5900 &"
     sleep 20  # Waktu tunggu agar container bisa stabil
 }
 
