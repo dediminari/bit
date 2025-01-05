@@ -117,3 +117,4 @@ echo "Container berjalan dengan baik. Lanjutkan tugas lainnya."
    			docker exec -itd vnc bash -c "pkill firefox"
 			sleep 15
 			docker exec -itd vnc bash -c "DISPLAY=:1 firefox --restore --no-remote --profile /root/.mozilla/firefox/diadw2ks.default-release"
+
