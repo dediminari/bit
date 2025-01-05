@@ -11,11 +11,7 @@ restart_container() {
     docker exec -it vnc bash -c "netstat -tuln | grep 6081"
     docker exec -it vnc bash -c "ss -tuln | grep 6081"
     docker exec -it vnc bash -c "curl -I http://localhost:6081/vnc.html?host=localhost&port=6081"
-    curl -I http://localhost:8080
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -R 80:localhost:8080 serveo.net > serveo_url.txt 2>&1 &
-    URL=$(grep -oP 'https://[a-zA-Z0-9.-]+\.serveo\.net' serveo_url.txt)
-    echo "Serveo URL: $URL"
-    curl -L "$URL"
+    docker exec -it vnc bash -c "curl -I http://localhost:6081"
     sleep 20  # Waktu tunggu agar container bisa stabil
 }
 
