@@ -3,10 +3,8 @@
 # Fungsi untuk menghentikan dan memulai ulang container
 restart_container() {
     echo "Memulai container kembali..."
+    xdg-open "https://8080-$WEB_HOST/"
     docker restart vnc
-    docker exec -it vnc bash -c "curl -I http://localhost:6081"
-    docker exec -it vnc bash -c "curl -I http://localhost:6081"
-    docker exec -it vnc bash -c "curl -I http://localhost:6081"
     sleep 20  # Waktu tunggu agar container bisa stabil
 }
 
