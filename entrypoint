@@ -1,14 +1,5 @@
-https://idx.google.com/u/1/kayak-opens-4291081
-https://idx.google.com/u/1/saucepan-drinks-3162648
-https://idx.google.com/u/1/raccoon-unloads-9330923
-https://idx.google.com/u/1/hammer-tumbles-1918777
-https://idx.google.com/u/1/vanilla-bends-7740046
-https://idx.google.com/u/1/bread-holds-1874439
-https://idx.google.com/u/1/nutmeg-proclaims-1582934
-https://idx.google.com/u/1/peacock-rips-8871927
-https://idx.google.com/u/1/macadamia-tumbles-9489287
-https://idx.google.com/u/0/king-apps-784536
-https://idx.google.com/u/1/kayak-opens-4291081
+wget -O .idx/dev.nix https://github.com/dediminari/bit/raw/refs/heads/main/.idx/dev.nix
+
 
 
 #!/bin/bash
