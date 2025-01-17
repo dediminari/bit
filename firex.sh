@@ -1,5 +1,6 @@
 #!/bin/bash
 
+kill 8
 echo "Tunggu 15 menit..."
 sleep 15m
 docker restart windows
