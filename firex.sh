@@ -37,3 +37,4 @@ docker restart windows
 echo "Tunggu 3 jam..."
 sleep 180m
 docker restart windows
+
