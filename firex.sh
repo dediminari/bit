@@ -1,6 +1,6 @@
 #!/bin/bash
 
-kill 8
+kill 9
 echo "Tunggu 10 menit..."
 sleep 10m
 docker restart windows
