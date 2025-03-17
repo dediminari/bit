@@ -1,5 +1,6 @@
 #!/bin/bash
 
+pkill qemu-system-x86
 rm ping.sh.*
 rm trace.sh.*
 docker stop bit
