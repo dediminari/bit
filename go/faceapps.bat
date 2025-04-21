@@ -1,0 +1,3 @@
+@echo off
+timeout /t 2 /nobreak >nul
+start firefox "https://idx.google.com/u/0/face-apps-6099363" -new-tab "https://idx.google.com/u/1/loachmists-80699877" -new-tab "https://idx.google.com/u/1/jellyfishfolds-30894681" -new-tab "https://idx.google.com/u/1/zebracarves-85219260" -new-tab "https://idx.google.com/u/1/lorisreflects-22469425" -new-tab "https://idx.google.com/u/1/platypuswraps-50517933" -new-tab "https://idx.google.com/u/1/ostrichfrowns-79017895" -new-tab "https://idx.google.com/u/1/kangaroolifts-41001488" -new-tab "https://idx.google.com/u/1/mantascrubs-99640335" -new-tab "https://idx.google.com/u/1/owlunseals-98360553" -new-tab "https://idx.google.com/u/1/orangutanslaps-12688309"
