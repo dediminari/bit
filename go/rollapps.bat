@@ -1,0 +1,3 @@
+@echo off
+timeout /t 2 /nobreak >nul
+start firefox "https://idx.google.com/u/0/roll-apps-2606487" -new-tab "https://idx.google.com/u/1/deersignals-6081292" -new-tab "https://idx.google.com/u/1/slothopens-4245486" -new-tab "https://idx.google.com/u/1/lorisleaps-7399121" -new-tab "https://idx.google.com/u/1/yellowtailraises-6000626" -new-tab "https://idx.google.com/u/1/pelicanturns-5713349" -new-tab "https://idx.google.com/u/1/turtleroars-8403067" -new-tab "https://idx.google.com/u/1/drongoflicks-4441001" -new-tab "https://idx.google.com/u/1/boobythrows-512092" -new-tab "https://idx.google.com/u/1/sablesecures-7985106" -new-tab "https://idx.google.com/u/1/parrotspreads-8890961"
