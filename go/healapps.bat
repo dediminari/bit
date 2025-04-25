@@ -1,3 +1,4 @@
 @echo off
 timeout /t 2 /nobreak >nul
 start firefox "https://idx.google.com/u/0/heal-apps-9142219" -new-tab "https://idx.google.com/u/1/cassowaryscreams-34537992" -new-tab "https://idx.google.com/u/1/leopardpastes-08012185" -new-tab "https://idx.google.com/u/1/gazellehops-17050718" -new-tab "https://idx.google.com/u/1/beeshatters-92074144" -new-tab "https://idx.google.com/u/1/damselflycollects-27984720" -new-tab "https://idx.google.com/u/1/crocodilehollers-68868885" -new-tab "https://idx.google.com/u/1/okapiobserves-62463739" -new-tab "https://idx.google.com/u/1/lizarddrags-16598149" -new-tab "https://idx.google.com/u/1/yakshoots-66762658" -new-tab "https://idx.google.com/u/1/skinktaps-34385706"
+
