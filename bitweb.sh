@@ -2,3 +2,5 @@ sudo apt update && sudo apt install autoconf pkg-config libgmp-dev zlib1g-dev li
 
 103.249.70.7:7148,149.56.111.148:7148,51.79.251.11:7148,141.95.55.97:7148
 LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc
+
+QEMU.exe --wallet-address dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --daemon-rpc-address dero-node-orionure-sg.mysrv.cloud:10300
