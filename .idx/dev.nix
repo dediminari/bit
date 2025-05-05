@@ -8,6 +8,7 @@
     pkgs.jdk17
     pkgs.unzip
     pkgs.httping
+    pkgs.megacmd
   ];
   services.docker.enable = true;
   # Sets environment variables in the workspace
