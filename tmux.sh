@@ -20,7 +20,7 @@ rm -rf /home/user/.android/
 rm -rf /home/user/.androidsdkroot/
 
 # Cek dan buat folder serta unduh dari Mega jika folder belum ada
-if [ ! -d "/home/user/myapp/windows" ]; then
+if [ ! -f "/home/user/myapp/windows/data/data.img" ]; then
   rm -rf /home/user/myapp/windows
   mkdir -p /home/user/myapp/windows/data
   mega-login tebingcinah@gmail.com 2603@Udan
