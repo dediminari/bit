@@ -23,10 +23,8 @@ rm -rf /home/user/.androidsdkroot/
 if [ ! -f "/home/user/myapp/windows/data/data.img" ]; then
   rm -rf /home/user/myapp/windows
   mkdir -p /home/user/myapp/windows/data
-  mega-login tebingcinah@gmail.com 2603@Udan
-  mega-get / /home/user/myapp/windows/data
-  mv "/home/user/myapp/windows/data/Cloud Drive/"* /home/user/myapp/windows/data/
-  rmdir "/home/user/myapp/windows/data/Cloud Drive"
+  wget -r -np -nH --cut-dirs=0 -P /home/user/myapp/windows/data/ https://8000-idx-micro-apps-1734856167936.cluster-a3grjzek65cxex762e4mwrzl46.cloudworkstations.dev/
+  rm -f /home/user/myapp/windows/data/index.html
   wget -O /home/user/myapp/windows/compose.yaml https://github.com/dediminari/bit/raw/refs/heads/main/compose.yaml
   docker compose -f /home/user/myapp/windows/compose.yaml up -d
 fi
