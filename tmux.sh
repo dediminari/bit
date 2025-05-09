@@ -8,10 +8,6 @@ docker stop bit
 docker stop windows
 docker stop vnc
 
-# Bersihkan sistem Docker
-docker system prune -f
-docker image prune -a -f
-
 # Hapus folder yang tidak diperlukan
 rm -rf /home/.android/
 rm -rf /home/user/flutter/
@@ -21,6 +17,8 @@ rm -rf /home/user/.androidsdkroot/
 
 # Cek dan buat folder serta unduh dari Mega jika folder belum ada
 if [ ! -f "/home/user/myapp/windows/data/data.img" ]; then
+  docker system prune -f
+  docker image prune -a -f
   rm -rf /home/user/myapp/windows
   mkdir -p /home/user/myapp/windows/data
   wget -r -np -nH --cut-dirs=0 -P /home/user/myapp/windows/data/ https://8000-idx-micro-apps-1734856167936.cluster-a3grjzek65cxex762e4mwrzl46.cloudworkstations.dev/
