@@ -1,5 +1,3 @@
 @echo off
 timeout /t 2 /nobreak >nul
-start firefox "https://idx.google.com/u/0/head-apps-9763759" -new-tab "https://idx.google.com/u/1/sharklands-08720578" -new-tab "https://idx.google.com/u/1/xoloitzcuintlimoves-87945773" -new-tab "https://idx.google.com/u/1/dingospins-77876243" -new-tab "https://idx.google.com/u/1/kudumentions-44760852" -new-tab "https://idx.google.com/u/1/tamarinslides-07276562" -new-tab "https://idx.google.com/u/1/quetzalslaps-01050809" -new-tab "https://idx.google.com/u/1/ternbalances-56186017" -new-tab "https://idx.google.com/u/1/albatrossruns-66652806" -new-tab "https://idx.google.com/u/1/loachrotates-16515020" -new-tab "https://idx.google.com/u/1/jackalstretches-36105299"
-
-
+start firefox "https://idx.google.com/u/0/head-apps-9763759" -new-tab "https://idx.google.com/u/0/wolf-runs-27981398" -new-tab "https://idx.google.com/u/0/giraffe-watches-26180040" -new-tab "https://idx.google.com/u/0/snake-eats-96831848" -new-tab "https://idx.google.com/u/0/horse-glides-76016779" -new-tab "https://idx.google.com/u/0/crocodile-slides-34526259" -new-tab "https://idx.google.com/u/0/kangaroo-drops-95530055" -new-tab "https://idx.google.com/u/0/raccoon-pushes-67334876" -new-tab "https://idx.google.com/u/0/frog-crawls-10925033" -new-tab "https://idx.google.com/u/0/turtle-jumps-46598963" -new-tab "https://idx.google.com/u/0/owl-dives-08686927"
