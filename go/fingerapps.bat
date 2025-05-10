@@ -1,5 +1,3 @@
 @echo off
 timeout /t 2 /nobreak >nul
-start firefox "https://idx.google.com/u/0/finger-apps-9070955" -new-tab "https://idx.google.com/u/1/quetzaldrinks-63597948" -new-tab "https://idx.google.com/u/1/tigerarranges-83337833" -new-tab "https://idx.google.com/u/1/quetzaldrops-56689393" -new-tab "https://idx.google.com/u/1/ocelotasks-98990453" -new-tab "https://idx.google.com/u/1/yabbysprays-05824750" -new-tab "https://idx.google.com/u/1/yakseparates-36389280" -new-tab "https://idx.google.com/u/1/catmixes-58944164" -new-tab "https://idx.google.com/u/1/anglerfishstruggles-76217075" -new-tab "https://idx.google.com/u/1/crowflips-05136683" -new-tab "https://idx.google.com/u/1/lynxsits-87737539"
-
-
+start firefox "https://idx.google.com/u/0/finger-apps-9070955" -new-tab "https://idx.google.com/u/0/dog-runs-42038219" -new-tab "https://idx.google.com/u/0/rabbit-pounces-88575345" -new-tab "https://idx.google.com/u/0/crocodile-runs-76749403" -new-tab "https://idx.google.com/u/0/frog-kicks-28063343" -new-tab "https://idx.google.com/u/0/raccoon-sings-51422775" -new-tab "https://idx.google.com/u/0/tiger-builds-65246272" -new-tab "https://idx.google.com/u/0/sloth-watches-60996836" -new-tab "https://idx.google.com/u/0/seagull-fixes-69336380" -new-tab "https://idx.google.com/u/0/crocodile-snaps-50682286" -new-tab "https://idx.google.com/u/0/bat-sings-64486946"
