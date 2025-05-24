@@ -11,3 +11,4 @@ start firefox -new-window "https://www.youtube.com/watch?v=pmvdTK5b5vI&list=PLnE
 start firefox -new-window "https://www.youtube.com/watch?v=y_hzZyCEqCw&list=PLnEMdERbMO0qKPVSS_B-kgetiAFlVvaqU"
 start firefox -new-window "https://www.youtube.com/watch?v=acJJR7pyElM&list=PLnEMdERbMO0qKPVSS_B-kgetiAFlVvaqU"
 
+
