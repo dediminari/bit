@@ -1,4 +1,4 @@
 @echo off
 timeout /t 2 /nobreak >nul
 
-start firefox -new-window "https://www.youtube.com/watch?v=5CY-6rLls1U"
+start firefox -new-window "https://www.youtube.com/watch?v=Wyb7nw61OBQ"
