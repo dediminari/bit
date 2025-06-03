@@ -1,3 +1,4 @@
 @echo off
 timeout /t 2 /nobreak >nul
 start firefox "https://idx.google.com/u/0/howl-apps-6018087" -new-tab "https://idx.google.com/raise-apps-2639828" -new-tab "https://idx.google.com/smash-apps-9345299" -new-tab "https://idx.google.com/pick-apps-1185509" -new-tab "https://idx.google.com/wind-apps-8849731" -new-tab "https://idx.google.com/code-apps-7039435" -new-tab "https://idx.google.com/secret-apps-119583" -new-tab "https://idx.google.com/low-apps-3009450" -new-tab "https://idx.google.com/deep-apps-5210816" -new-tab "https://idx.google.com/open-apps-992524" -new-tab "https://idx.google.com/lava-apps-4496218"
+
