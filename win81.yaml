@@ -8,15 +8,23 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
-      - 8006:8006
+      - 8006:5900
       - 3390:3389/tcp
       - 3390:3389/udp
-    stop_grace_period: 1m
-    restart: unless-stopped
-    environment:
-      VERSION: ""
-      DISK_SIZE: ""
-      RAM_SIZE: "4G"
-      CPU_CORES: "8"
     volumes:
       - ./data:/storage
+      - ./iso:/iso
+    entrypoint: >
+      qemu-system-x86_64
+      -machine accel=kvm
+      -m 4G
+      -smp 8
+      -cpu host
+      -boot d
+      -cdrom /iso/win81-lite.iso
+      -drive file=/storage/data.img,format=raw,if=virtio
+      -netdev user,id=n1,hostfwd=tcp::3389-:3389
+      -device virtio-net-pci,netdev=n1
+      -vga virtio
+      -vnc :0
+      -serial mon:stdio
