@@ -1,0 +1,22 @@
+version: "3"
+services:
+  windows:
+    image: dockurr/windows
+    container_name: windows
+    devices:
+      - /dev/kvm
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8006:8006           # Akses via browser (GUI VNC/web)
+      - 3390:3389/tcp       # RDP TCP
+      - 3390:3389/udp       # RDP UDP
+    stop_grace_period: 1m
+    restart: unless-stopped
+    environment:
+      VERSION: "8e"         # Windows 8.1 Enterprise
+      RAM_SIZE: "4G"        # Cukup untuk Firefox dan RDP 
+      CPU_CORES: "8" 
+      DISK_SIZE: "5G"       # Paling hemat dengan tetap aman
+    volumes:
+      - ./data:/storage
