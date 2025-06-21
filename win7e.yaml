@@ -15,8 +15,8 @@ services:
     restart: unless-stopped
     environment:
       VERSION: "7e"
-      RAM_SIZE: "2G"
-      CPU_CORES: "2"
+      RAM_SIZE: "4G"
+      CPU_CORES: "8"
       DISK_SIZE: "5G"
     volumes:
       - ./data:/storage
