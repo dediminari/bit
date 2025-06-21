@@ -8,15 +8,15 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
-      - 8006:8006           # Web GUI (VNC-like)
-      - 3390:3389/tcp       # RDP
+      - 8006:8006
+      - 3390:3389/tcp
       - 3390:3389/udp
     stop_grace_period: 1m
     restart: unless-stopped
     environment:
-      VERSION: ""           # Tidak download ISO baru
-      DISK_SIZE: ""         # Tidak buat disk baru
+      VERSION: ""
+      DISK_SIZE: ""
       RAM_SIZE: "4G"
       CPU_CORES: "8"
     volumes:
-      - ./windows/data:/storage
+      - ./data:/storage
