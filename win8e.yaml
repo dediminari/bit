@@ -17,6 +17,6 @@ services:
       VERSION: "8e"         # Windows 8.1 Enterprise
       RAM_SIZE: "4G"        # Cukup untuk Firefox dan RDP 
       CPU_CORES: "8" 
-      DISK_SIZE: "5G"       # Paling hemat dengan tetap aman
+      DISK_SIZE: "10G"       # Paling hemat dengan tetap aman
     volumes:
       - ./data:/storage
