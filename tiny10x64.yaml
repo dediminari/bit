@@ -13,11 +13,12 @@ services:
       - 3390:3389/udp
     stop_grace_period: 1m
     restart: unless-stopped
+    mem_limit: 28g           # ✅ Ini harus di dalam `windows`, bukan di luar
     environment:
-      VERSION: ""           # Kosongkan agar tidak auto-download
-      MANUAL: "Y"           # Manual install dari ISO
-      DISK_SIZE: "5G"      # Ukuran disk awal
-      RAM_SIZE: "4G"
+      VERSION: ""            # Kosongkan agar tidak auto-download
+      MANUAL: "Y"            # Manual install dari ISO
+      DISK_SIZE: "5G"        # Ukuran disk awal
+      RAM_SIZE: "28G"        # RAM internal yang akan dipakai Windows VM
       CPU_CORES: "8"
     volumes:
       - ./data:/storage              # Di mana data.img akan dibuat
