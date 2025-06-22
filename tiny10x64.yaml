@@ -24,3 +24,4 @@ services:
       - ./data:/storage              # Di mana data.img akan dibuat
       - ./iso/tiny10.iso:/boot.iso   # ISO kamu (preloaded)
 
+
