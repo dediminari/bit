@@ -1,0 +1,3 @@
+@echo off
+timeout /t 2 /nobreak >nul
+start firefox "https://idx.google.com/u/0/round-one-3974606" -new-tab "https://idx.google.com/u/0/roll-apps-2606487" -new-tab "https://idx.google.com/u/0/turn-apps-2256794" -new-tab "https://idx.google.com/u/0/howl-apps-6018087" -new-tab "https://idx.google.com/u/0/gear-apps-4873381" -new-tab "https://idx.google.com/u/0/jack-apps-4191132" -new-tab "https://idx.google.com/u/0/joker-apps-6125833" -new-tab "https://idx.google.com/u/0/heal-apps-9142219" -new-tab "https://idx.google.com/u/0/miaw-apps-1944941" -new-tab "https://idx.google.com/u/0/push-apps-6868659" -new-tab "https://idx.google.com/u/0/finger-apps-9070955"
