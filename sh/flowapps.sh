@@ -40,3 +40,4 @@ firefox --new-window \
   "https://idx.google.com/u/1/camelhits-71563397" \
   "https://idx.google.com/u/1/foxsorts-09844137" \
   "https://idx.google.com/u/1/hawkthrows-20986441" &
+
