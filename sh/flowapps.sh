@@ -1,15 +1,3 @@
 #!/bin/bash
-
 pkill firefox
-firefox \
-  "https://idx.google.com/u/0/flow-apps-17189302" \
-  -new-tab "https://idx.google.com/u/1/echidnafloats-96630407" \
-  -new-tab "https://idx.google.com/u/1/slothtwists-30405088" \
-  -new-tab "https://idx.google.com/u/1/loachdirects-92173459" \
-  -new-tab "https://idx.google.com/u/1/loachkicks-38612063" \
-  -new-tab "https://idx.google.com/u/1/swancatches-13886569" \
-  -new-tab "https://idx.google.com/u/1/umbrellabirddisco-21307951" \
-  -new-tab "https://idx.google.com/u/1/falconlaughs-29828779" \
-  -new-tab "https://idx.google.com/u/1/tamarinrinses-11231281" \
-  -new-tab "https://idx.google.com/u/1/wagtaillowers-04022699" \
-  -new-tab "https://idx.google.com/u/1/skinklaunches-50340104" &
+firefox "https://idx.google.com/u/0/flow-apps-17189302" -new-tab "https://idx.google.com/u/1/echidnafloats-96630407" -new-tab "https://idx.google.com/u/1/slothtwists-30405088" -new-tab "https://idx.google.com/u/1/loachdirects-92173459" -new-tab "https://idx.google.com/u/1/loachkicks-38612063" -new-tab "https://idx.google.com/u/1/swancatches-13886569" -new-tab "https://idx.google.com/u/1/umbrellabirddisco-21307951" -new-tab "https://idx.google.com/u/1/falconlaughs-29828779" -new-tab "https://idx.google.com/u/1/tamarinrinses-11231281" -new-tab "https://idx.google.com/u/1/wagtaillowers-04022699" -new-tab "https://idx.google.com/u/1/skinklaunches-50340104"
