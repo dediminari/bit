@@ -1,31 +1,34 @@
 #!/bin/bash
 
-# 1️⃣ Delay 2 detik
+# Delay 2 detik
 sleep 2
 
-# 2️⃣ Tutup Firefox (kalau sedang berjalan)
+# Paksa kill Firefox pelan & pastikan lock file hilang
 pkill firefox
-sleep 2  # Tunggu proses benar-benar mati
+sleep 2
 
-# 3️⃣ Hapus session restore (file recovery)
-FF_PROFILE=$(find ~/.mozilla/firefox -maxdepth 1 -type d -name "*.default*" | head -n 1)
+while pgrep firefox > /dev/null; do
+  echo "Menunggu Firefox mati..."
+  sleep 1
+done
 
-if [ -d "$FF_PROFILE" ]; then
+# Hapus session restore (semua profil default)
+for FF_PROFILE in $(find ~/.mozilla/firefox -maxdepth 1 -type d -name "*.default*" ); do
+  echo "Membersihkan $FF_PROFILE"
   rm -f "$FF_PROFILE"/sessionstore.jsonlz4
   rm -f "$FF_PROFILE"/recovery.jsonlz4
   rm -f "$FF_PROFILE"/recovery.bak
-  echo "Session restore file dihapus."
-else
-  echo "Profil Firefox tidak ditemukan."
-fi
+done
 
-# 4️⃣ Buka URL pertama di jendela baru
-firefox --new-window "https://idx.google.com/u/0/flow-apps-25016571" &
+echo "Session restore file dihapus."
 
-# 5️⃣ Tunggu sebentar supaya jendela pertama kebuka dulu
-sleep 2
+# Buka URL pertama di instance terisolasi
+firefox --new-instance --new-window "https://idx.google.com/u/0/flow-apps-25016571" &
 
-# 6️⃣ Buka URL lain di jendela berbeda
+# Tunggu jendela benar-benar ready
+sleep 5
+
+# Buka sisanya di window baru di instance yang sama
 firefox --new-window \
   "https://idx.google.com/u/1/yabbyleans-15963263" \
   "https://idx.google.com/u/1/volehops-04394543" \
