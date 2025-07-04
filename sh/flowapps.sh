@@ -1,43 +1,15 @@
 #!/bin/bash
 
-# Delay 2 detik
-sleep 2
-
-# Paksa kill Firefox pelan & pastikan lock file hilang
 pkill firefox
-sleep 2
-
-while pgrep firefox > /dev/null; do
-  echo "Menunggu Firefox mati..."
-  sleep 1
-done
-
-# Hapus session restore (semua profil default)
-for FF_PROFILE in $(find ~/.mozilla/firefox -maxdepth 1 -type d -name "*.default*" ); do
-  echo "Membersihkan $FF_PROFILE"
-  rm -f "$FF_PROFILE"/sessionstore.jsonlz4
-  rm -f "$FF_PROFILE"/recovery.jsonlz4
-  rm -f "$FF_PROFILE"/recovery.bak
-done
-
-echo "Session restore file dihapus."
-
-# Buka URL pertama di instance terisolasi
-firefox --new-instance --new-window "https://idx.google.com/u/0/flow-apps-25016571" &
-
-# Tunggu jendela benar-benar ready
-sleep 5
-
-# Buka sisanya di window baru di instance yang sama
-firefox --new-window \
-  "https://idx.google.com/u/1/yabbyleans-15963263" \
-  "https://idx.google.com/u/1/volehops-04394543" \
-  "https://idx.google.com/u/1/quollglides-14773299" \
-  "https://idx.google.com/u/1/indianpythonshakes-89109680" \
-  "https://idx.google.com/u/1/zorseanswers-57066419" \
-  "https://idx.google.com/u/1/viperfishbreaks-95068107" \
-  "https://idx.google.com/u/1/mandrillcools-67078439" \
-  "https://idx.google.com/u/1/camelhits-71563397" \
-  "https://idx.google.com/u/1/foxsorts-09844137" \
-  "https://idx.google.com/u/1/hawkthrows-20986441" &
-
+firefox \
+  "https://idx.google.com/u/0/flow-apps-17189302" \
+  -new-tab "https://idx.google.com/u/1/echidnafloats-96630407" \
+  -new-tab "https://idx.google.com/u/1/slothtwists-30405088" \
+  -new-tab "https://idx.google.com/u/1/loachdirects-92173459" \
+  -new-tab "https://idx.google.com/u/1/loachkicks-38612063" \
+  -new-tab "https://idx.google.com/u/1/swancatches-13886569" \
+  -new-tab "https://idx.google.com/u/1/umbrellabirddisco-21307951" \
+  -new-tab "https://idx.google.com/u/1/falconlaughs-29828779" \
+  -new-tab "https://idx.google.com/u/1/tamarinrinses-11231281" \
+  -new-tab "https://idx.google.com/u/1/wagtaillowers-04022699" \
+  -new-tab "https://idx.google.com/u/1/skinklaunches-50340104" &
