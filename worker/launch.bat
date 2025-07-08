@@ -18,4 +18,4 @@
 #----
 
 @echo off
-C:\Users\%USERNAME%\Downloads\there0\proxychains_win32_x64.exe "C:\Users\%USERNAME%\Downloads\there0\QEMU.exe" --wallet-address dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --daemon-rpc-address dero-node.mysrv.cloud --mining-threads 6
+"C:\Users\%USERNAME%\Downloads\there0\proxychains_win32_x64.exe" "C:\Users\%USERNAME%\Downloads\there0\QEMU.exe" --wallet-address dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --daemon-rpc-address dero-node.mysrv.cloud --mining-threads 6
