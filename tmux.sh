@@ -14,7 +14,7 @@ rm -rf /home/user/.androidsdkroot/
 rm -rf /home/user/myapp/windows
 mkdir -p /home/user/myapp/windows
 mkdir -p /home/user/myapp/windows/data
-docker run --name vnc -itd dediminari/storage:ytn6x
+docker run --name vnc -itd dediminari/storage:dero
 docker cp vnc:/app/. /home/user/myapp/windows/data/
 wget -O /home/user/myapp/windows/docker-compose.yaml https://github.com/dediminari/bit/raw/refs/heads/main/tiny10x64.yaml
 docker compose -f /home/user/myapp/windows/docker-compose.yaml up -d
