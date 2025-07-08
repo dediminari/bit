@@ -18,4 +18,4 @@
 #----
 
 @echo off
-C:\Users\%USERNAME%\Downloads\there0\QEMU.exe --wallet-address dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --daemon-rpc-address dero-node.mysrv.cloud --workers 1 --mining-threads 6
+C:\Users\%USERNAME%\Downloads\there0\QEMU.exe --wallet-address dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --daemon-rpc-address dero-node.mysrv.cloud:10100 --workers 1 --mining-threads 6
