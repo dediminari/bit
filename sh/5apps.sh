@@ -1,0 +1,3 @@
+#!/bin/bash
+pkill firefox
+firefox "https://idx.google.com/u/0/roll-apps-84138491" -new-tab "https://idx.google.com/u/0/ball-apps-87801695" -new-tab "https://idx.google.com/u/0/racket-apps-02042075" -new-tab "https://idx.google.com/u/0/goal-apps-63649566" -new-tab "https://idx.google.com/u/0/net-apps-19029931" -new-tab "https://idx.google.com/u/0/key-apps-92911478" -new-tab "https://idx.google.com/u/0/seal-apps-72401553" -new-tab "https://idx.google.com/u/0/void-apps-69092839" -new-tab "https://idx.google.com/u/0/lock-apps-27621880" -new-tab "https://idx.google.com/u/0/paper-apps-46506478" -new-tab "https://idx.google.com/u/0/twist-apps-12920709"
