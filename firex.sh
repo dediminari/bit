@@ -1,75 +1,147 @@
 #!/bin/bash
 
 
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
-echo "Tunggu 1 jam..."
-sleep 60m
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
+docker restart vnc
+echo "Tunggu 30 menit..."
+sleep 30m
 docker restart vnc
