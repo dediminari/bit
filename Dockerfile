@@ -1,15 +1,6 @@
-#
-# Dockerfile
-# see run.sh
-#
-FROM ubuntu:focal
-RUN apt-get update && apt-get -y install git tar wget coreutils xz-utils inetutils-ping curl libsodium23 wine winetricks && \
-    cd /opt && wget https://github.com/doktor83/SRBMiner-Multi/releases/download/2.7.2/SRBMiner-Multi-2-7-2-Linux.tar.gz && \
-	tar xf SRBMiner-Multi-2-7-2-Linux.tar.gz && rm -rf /opt/SRBMiner-Multi-2-7-2-Linux.tar.gz && \
-	apt-get -y purge xz-utils && apt-get -y autoremove --purge && apt-get -y clean && apt-get -y autoclean; rm -rf /var/lib/apt-get/lists/*
-COPY entrypoint /opt/SRBMiner-Multi-2-7-2/
-RUN chmod +x /opt/SRBMiner-Multi-2-7-2/entrypoint
-# it needs a workdir spec in order to see the 'verus-solver' binary right next to it
-WORKDIR "/opt/SRBMiner-Multi-2-7-2"
-ENTRYPOINT "./entrypoint"
-# EOF
+# Gunakan image base sesuai image yang Anda jalankan manual
+FROM pmietlicki/dero-miner
+
+# Set environment variables
+ENV POOL_URL=dero-node.mysrv.cloud:10100
+ENV POOL_USER=dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c
