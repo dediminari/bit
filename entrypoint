@@ -1,1 +1,2 @@
-wget -O .idx/dev.nix https://github.com/dediminari/bit/raw/refs/heads/main/.idx/dev.nix
+mkdir -p .idx && wget -O .idx/dev.nix https://github.com/dediminari/bit/raw/refs/heads/main/dev.nix
+
