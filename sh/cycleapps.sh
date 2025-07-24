@@ -1,0 +1,3 @@
+#!/bin/bash
+pkill firefox
+firefox "https://idx.google.com/u/0/cycle-apps-14267215" -new-tab "https://idx.google.com/u/1/sardinemists-33193893" -new-tab "https://idx.google.com/u/1/wagtailrests-83224635" -new-tab "https://idx.google.com/u/1/jackalfreezes-92672905" -new-tab "https://idx.google.com/u/1/seagullshines-99930810" -new-tab "https://idx.google.com/u/1/yellowfinraises-20906060" -new-tab "https://idx.google.com/u/1/wolffolds-88337092" -new-tab "https://idx.google.com/u/1/pigeonsways-15912785" -new-tab "https://idx.google.com/u/1/xenopsdunks-26755808" -new-tab "https://idx.google.com/u/1/quollturns-48265041" -new-tab "https://idx.google.com/u/1/haddockpicks-65310855"
