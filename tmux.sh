@@ -1,6 +1,5 @@
 #!/bin/bash
 
-pkill qemu-system-x86
 docker stop bit
 docker stop windows
 docker stop vnc
