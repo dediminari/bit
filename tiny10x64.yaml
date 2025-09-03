@@ -20,6 +20,6 @@ services:
       RAM_SIZE: "16G"        # RAM internal yang akan dipakai Windows VM
       CPU_CORES: "8"
     volumes:
-      - ./data:/storage              # Di mana data.img akan dibuat
-      - ./iso/tiny10.iso:/boot.iso   # ISO kamu (preloaded)
-
+      - /home/user/myapp/windows/data:/storage              # Di mana data.img akan dibuat
+      - /home/user/myapp/windows/iso/tiny10.iso:/boot.iso   # ISO kamu (preloaded)
+      
