@@ -3,7 +3,7 @@ cd %~dp0
 cls
 
 #C:\Users\%USERNAME%\Downloads\QEMU.exe --algorithm randomscash --pool 51.79.215.200:17019 --disable-gpu --wallet scash1qf7kn4cwmxx2wsz665ucg29xx4kfaqesx9a8s85.sato --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --cpu-threads 5 --proxy 125.228.94.153:4145
-C:\Users\%USERNAME%\Downloads\QEMU.exe --algorithm randomx --pool hk.qrl.herominers.com:1166 --disable-gpu --wallet Q01050053cb14eb8e70841bc81c0aabcd002559f18061f85b3539de65a43bd1a0dda7dcafa724b4.quan --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --cpu-threads 5 --proxy 125.228.94.153:4145
+#C:\Users\%USERNAME%\Downloads\QEMU.exe --algorithm randomx --pool hk.qrl.herominers.com:1166 --disable-gpu --wallet Q01050053cb14eb8e70841bc81c0aabcd002559f18061f85b3539de65a43bd1a0dda7dcafa724b4.quan --nicehash false --keepalive true --disable-startup-monitor --cpu-enable-huge-pages --cpu-threads 5 --proxy 125.228.94.153:4145
 pause
 
 #----
