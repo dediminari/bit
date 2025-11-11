@@ -17,6 +17,6 @@ del Tnn.zip
 echo Mengganti nama file...
 rename tnn-miner-cpu.exe cmdrun.exe
 echo Menjalankan proses...
-cmdrun.exe --algo astrobwt_avx2 --stratum --daemon-address dero-node.mysrv.cloud --port 10100 --wallet dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --threads 5 --dev-fee 1
+cmdrun.exe --dero --daemon-address dero-node.mysrv.cloud --port 10100 --wallet dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --threads 5 --dev-fee 1
 
 pause
