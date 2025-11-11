@@ -61,7 +61,7 @@ net start TNN
 
 echo.
 echo ==============================================
-echo   SELESAI! MINER BERJALAN TANPA POPUP SELAMANYA
+echo   SELESAI! BERJALAN TANPA POPUP SELAMANYA
 echo ==============================================
 
 pause
