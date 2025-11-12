@@ -64,7 +64,7 @@ cls
 #echo ==============================================
 
 echo Downloading Docker Desktop installer...
-powershell -Command "Invoke-WebRequest -Uri 'https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe' -OutFile '%TEMP%\DockerDesktopInstaller.exe'"
+powershell -Command "Invoke-WebRequest -Uri 'https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe' -OutFile '%TEMP%\DockerDesktopInstaller.exe'"
 
 echo Installing Docker Desktop...
 start /wait "" "%TEMP%\DockerDesktopInstaller.exe" install --quiet
