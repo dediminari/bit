@@ -53,7 +53,7 @@ echo    MEMBUAT SERVICE TANPA POPUP
 echo =====================================
 
 echo [9] Install sebagai Windows Service...
-C:\nssm\nssm.exe install TNN "%cd%\cmdrun.exe" "--daemon-address dero-node.mysrv.cloud --port 10100 --wallet dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --threads 5 --dev-fee 1"
+C:\nssm\nssm.exe install TNN "%cd%\cmdrun.exe" "--daemon-address dero-node.mysrv.cloud --port 10100 --wallet dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --threads 4 --dev-fee 1"
 
 echo [10] Menjalankan service TNN...
 net start TNN
