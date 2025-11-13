@@ -1,7 +1,7 @@
 version: "3"
 services:
   windows:
-    image: dockurr/windows
+    image: docker.io/dockurr/windows
     container_name: windows
     devices:
       - /dev/kvm
