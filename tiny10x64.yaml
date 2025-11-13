@@ -23,4 +23,3 @@ services:
       - /var/windows/data:/storage              # Di mana data.img akan dibuat
       - /var/windows/iso/tiny10.iso:/boot.iso   # ISO kamu (preloaded)
       
-
