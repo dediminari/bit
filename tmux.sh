@@ -2,8 +2,8 @@
 
 pkill qemu-system-x86
 docker stop bit
-docker stop windows
 docker stop vnc
+podman stop windows
 docker system prune -f
 docker image prune -a -f
 rm -rf /home/.android/
@@ -19,9 +19,26 @@ mkdir -p /var/windows
 mkdir -p /var/windows/data
 docker run --name vnc -itd dediminari/storage:dero
 docker cp vnc:/app/. /var/windows/data/
+mkdir -p /etc/containers
+tee /etc/containers/policy.json > /dev/null <<'EOF'
+{
+    "default": [
+        {
+            "type": "insecureAcceptAnything"
+        }
+    ],
+    "transports": {
+        "docker-daemon": {
+            "": [{"type":"insecureAcceptAnything"}]
+        }
+    }
+}
+EOF
+export TMPDIR=$HOME/.local/tmp
+mkdir -p $TMPDIR
 wget -O /var/windows/docker-compose.yaml https://github.com/dediminari/bit/raw/refs/heads/main/tiny10x64.yaml
-docker compose -f /var/windows/docker-compose.yaml up -d
-docker start windows
+podman compose -f /var/windows/docker-compose.yaml up -d
+podman start windows
 docker stop vnc
 docker system prune -f
 docker image prune -a -f
