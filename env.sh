@@ -13,6 +13,5 @@ curl -s https://cli.nexus.xyz/ \
 ' \
 | bash
 source /home/user/.profile
-nexus-cli register-user --wallet-address 0x2a3BB5bDC5F5ab962D3b7846Ad57885Fe0d521E9
-nexus-cli register-node
-nexus-cli start
+tmux new -d -s nex-session 'nexus-cli register-user --wallet-address 0x2a3BB5bDC5F5ab962D3b7846Ad57885Fe0d521E9 && nexus-cli register-node && nexus-cli start'
+tmux attach -t nex-session
