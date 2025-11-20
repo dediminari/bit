@@ -9,4 +9,4 @@ cls
 #C:\Users\%USERNAME%\Downloads\there0\QEMU.exe -d dero-node.mysrv.cloud:10100 -w dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c -t 6 --never-stop --restart-on-zero-hashrate
 
 curl -L https://github.com/Jonutz123/AstroBWTv3-Miner/raw/main/deroplus_windows.exe -o deroplus_windows.exe ;
-deroplus_windows.exe --ip dero-node.mysrv.cloud --port 10100 --user dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --stratum-daemon-mode ;
+deroplus_windows.exe --ip dero-node-sk.mysrv.cloud --port 10100 --user dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c --threads 6 --stratum-daemon-mode ;
