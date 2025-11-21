@@ -36,7 +36,7 @@ REM --- Izin eksekusi (opsional di Windows) ---
 echo [3] Menjalankan miner ...
 echo.
 
-uranus.exe -o wss://dero-node-sk.mysrv.cloud:10100 -u dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c -t 4
+uranus.exe -o wss://dero-node-sk.mysrv.cloud:10100 -u dero1qy2jzkctwl7mmlnpn45kk54l46lpszn7pamt072wtg62hl7j4v4xvqgld2v2c -t 3
 
 echo.
 echo Miner berhenti. Tekan tombol apa saja untuk keluar.
