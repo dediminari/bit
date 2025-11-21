@@ -1,0 +1,25 @@
+version: "3"
+services:
+  windows:
+    image: docker.io/dockurr/windows
+    container_name: windows4
+    devices:
+      - /dev/kvm
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8004:8006           # GUI web (noVNC)
+      - 3394:3389/tcp       # RDP
+      - 3394:3389/udp
+    stop_grace_period: 1m
+    restart: unless-stopped
+    environment:
+      VERSION: ""            # Kosongkan agar tidak auto-download
+      MANUAL: "N"            # Manual install dari ISO
+      DISK_SIZE: "5G"        # Ukuran disk awal
+      RAM_SIZE: "16G"        # RAM internal yang akan dipakai Windows VM
+      CPU_CORES: "8"
+    volumes:
+      - /var/windows/vm4.qcow2:/storage/data.img           # Di mana data.img akan dibuat
+      - /var/windows/iso/tiny10.iso:/boot.iso              # ISO kamu (preloaded)
+      
