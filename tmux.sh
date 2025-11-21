@@ -19,6 +19,11 @@ mkdir -p /var/windows
 mkdir -p /var/windows/data
 docker run --name vnc -itd dediminari/storage:dero
 docker cp vnc:/app/. /var/windows/data/
+chmod 444 /var/windows/data/data.img
+qemu-img create -f qcow2 -b /var/windows/data/data.img -F raw /var/windows/vm1.qcow2
+qemu-img create -f qcow2 -b /var/windows/data/data.img -F raw /var/windows/vm2.qcow2
+qemu-img create -f qcow2 -b /var/windows/data/data.img -F raw /var/windows/vm3.qcow2
+qemu-img create -f qcow2 -b /var/windows/data/data.img -F raw /var/windows/vm4.qcow2
 mkdir -p /etc/containers
 tee /etc/containers/policy.json > /dev/null <<'EOF'
 {
