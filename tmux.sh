@@ -1,11 +1,16 @@
 #!/bin/bash
 
 pkill qemu-system-x86
-docker stop bit
 docker stop vnc
 podman stop windows
+podman stop windows1
+podman stop windows2
+podman stop windows3
+podman stop windows4
 docker system prune -f
 docker image prune -a -f
+podman system prune -a -f
+podman image prune -f
 rm -rf /home/.android/
 rm -rf /home/user/flutter/
 rm -rf /home/user/.gradle/
