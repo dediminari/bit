@@ -47,16 +47,16 @@ EOF
 export TMPDIR=$HOME/.local/tmp
 mkdir -p $TMPDIR
 wget -O /var/windows/docker1-compose.yaml https://github.com/dediminari/bit/raw/refs/heads/main/tiny10x64win1.yaml 
-podman compose -f /var/windows/docker1-compose.yaml up -d 
+podman compose -p win1 -f /var/windows/docker1-compose.yaml up -d 
 podman start windows1
 wget -O /var/windows/docker2-compose.yaml https://github.com/dediminari/bit/raw/refs/heads/main/tiny10x64win2.yaml 
-podman compose -f /var/windows/docker2-compose.yaml up -d 
+podman compose -p win2 -f /var/windows/docker2-compose.yaml up -d 
 podman start windows2
 wget -O /var/windows/docker3-compose.yaml https://github.com/dediminari/bit/raw/refs/heads/main/tiny10x64win3.yaml 
-podman compose -f /var/windows/docker3-compose.yaml up -d 
+podman compose -p win3 -f /var/windows/docker3-compose.yaml up -d 
 podman start windows3
 wget -O /var/windows/docker4-compose.yaml https://github.com/dediminari/bit/raw/refs/heads/main/tiny10x64win4.yaml 
-podman compose -f /var/windows/docker4-compose.yaml up -d 
+podman compose -p win4 -f /var/windows/docker4-compose.yaml up -d 
 podman start windows4
 docker stop vnc
 docker system prune -f
