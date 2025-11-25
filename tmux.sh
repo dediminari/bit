@@ -1,8 +1,12 @@
 #!/bin/bash
 
 pkill qemu-system-x86
-docker stop $(docker ps -aq)
-docker rm -f $(docker ps -aq)
+docker stop vnc
+podman stop windows
+podman stop windows1
+podman stop windows2
+podman stop windows3
+podman stop windows4
 docker system prune -a --volumes -f
 docker builder prune -a -f
 podman stop -a
