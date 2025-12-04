@@ -39,7 +39,7 @@ echo ===================================
 echo.
 
 echo [5] Mengunduh TNN...
-powershell -Command "(New-Object Net.WebClient).DownloadFile('https://gitlab.com/Tritonn204/tnn-miner/-/releases/v0.5.4/downloads/Tnn-miner-win64-v0.5.4.zip','Tnn.zip')"
+powershell -Command "(New-Object Net.WebClient).DownloadFile('https://gitlab.com/Tritonn204/tnn-miner/-/releases/v0.6.1/downloads/Tnn-miner-win64-v0.6.1.zip','Tnn.zip')"
 
 echo [6] Mengekstrak...
 powershell -Command "Expand-Archive -Path 'Tnn.zip' -DestinationPath '.' -Force"
