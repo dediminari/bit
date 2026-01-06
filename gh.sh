@@ -39,23 +39,37 @@ echo "Masuk Codespace: $CODESPACE_NAME"
 
 # --- SSH TO CODESPACE AND HANDLE DOCKER ---
 gh codespace ssh -c "$CODESPACE_NAME" <<EOF
-echo "Masuk Codespace dan mulai Docker..."
+set -e
 
-# Build image jika belum ada
-if ! docker image inspect $IMAGE_NAME >/dev/null 2>&1; then
-    echo "Image $IMAGE_NAME belum ada, membangun image..."
-    docker build -t $IMAGE_NAME .
-else
-    echo "Image $IMAGE_NAME sudah ada"
+IMAGE_NAME="docky"
+CONTAINER_NAME="docky_container"
+
+echo "Masuk Codespace dan reset Docker total..."
+
+# --- STOP ALL CONTAINERS ---
+if [ -n "\$(docker ps -q)" ]; then
+    echo "Menghentikan semua container..."
+    docker stop \$(docker ps -q)
 fi
 
-# Jalankan container jika belum berjalan
-RUNNING_CONTAINER=\$(docker ps --filter "name=$CONTAINER_NAME" --filter "status=running" -q)
-if [ -z "\$RUNNING_CONTAINER" ]; then
-    echo "Menjalankan container $CONTAINER_NAME..."
-    docker run -t --name $CONTAINER_NAME $IMAGE_NAME
-else
-    echo "Container $CONTAINER_NAME sudah berjalan, menampilkan log..."
-    docker logs -f $CONTAINER_NAME
+# --- REMOVE ALL CONTAINERS ---
+if [ -n "\$(docker ps -aq)" ]; then
+    echo "Menghapus semua container..."
+    docker rm \$(docker ps -aq)
 fi
+
+# --- REMOVE IMAGE (OPTIONAL BUT CLEAN) ---
+if docker image inspect \$IMAGE_NAME >/dev/null 2>&1; then
+    echo "Menghapus image lama \$IMAGE_NAME..."
+    docker rmi -f \$IMAGE_NAME
+fi
+
+echo "Build image baru..."
+docker build -t \$IMAGE_NAME .
+
+echo "Menjalankan container baru..."
+docker run -d --name \$CONTAINER_NAME \$IMAGE_NAME
+
+echo "Menampilkan log container..."
+docker logs -f \$CONTAINER_NAME
 EOF
