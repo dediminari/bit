@@ -13,7 +13,6 @@ setlocal EnableDelayedExpansion
 
 echo ========================================
 echo   Security Service Controller STARTED
-echo   Mode: NON-ADMIN
 echo ========================================
 
 REM =========================
