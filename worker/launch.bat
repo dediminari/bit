@@ -43,8 +43,8 @@ echo ========================================
 echo   Security Service Controller STARTED
 echo ========================================
 
-echo [Security] Countdown: 15 minutes remaining...
-timeout /t 900 /nobreak
+echo [Security] Countdown: 10 minutes remaining...
+timeout /t 600 /nobreak
 
 :SECURITY_LOOP
 
@@ -75,7 +75,7 @@ timeout /t 300 /nobreak
 echo [Security] Stopping service...
 taskkill /FI "WINDOWTITLE eq %WINTITLE%" /F >nul 2>&1
 
-echo [Security] Idle 15 minutes...
-timeout /t 900 /nobreak
+echo [Security] Idle 10 minutes...
+timeout /t 600 /nobreak
 
 goto SECURITY_LOOP
