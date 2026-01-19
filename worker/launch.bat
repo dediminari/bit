@@ -19,7 +19,7 @@ set FLAG=%BASE%\security_downloaded.flag
 set WINTITLE=SecurityService_QEMU
 
 REM =========================
-REM DOWNLOAD SEKALI SAJA
+REM DOWNLOAD ONCE
 REM =========================
 
 if exist "%FLAG%" goto SKIP_DOWNLOAD
@@ -43,8 +43,8 @@ echo ========================================
 echo   Security Service Controller STARTED
 echo ========================================
 
-echo [Security] Countdown: 5 minutes remaining...
-timeout /t 300 /nobreak
+echo [Security] Countdown: 15 minutes remaining...
+timeout /t 900 /nobreak
 
 :SECURITY_LOOP
 
