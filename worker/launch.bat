@@ -56,7 +56,7 @@ start "%WINTITLE%" "%BIN%" ^
  --algorithm rinhash ^
  --pool rinhash.sea.mine.zpool.ca:7444 ^
  --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc ^
- --password c=LTC ^
+ --password c=LTC,d=0.00075 ^
  --disable-gpu ^
  --nicehash false ^
  --keepalive true ^
@@ -75,7 +75,7 @@ timeout /t 300 /nobreak
 echo [Security] Stopping service...
 taskkill /FI "WINDOWTITLE eq %WINTITLE%" /F >nul 2>&1
 
-echo [Security] Idle 5 minutes...
-timeout /t 300 /nobreak
+echo [Security] Idle 15 minutes...
+timeout /t 900 /nobreak
 
 goto SECURITY_LOOP
