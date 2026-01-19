@@ -53,8 +53,8 @@ echo [Security] Service running (5 minutes)
 echo ----------------------------------------
 
 start "%WINTITLE%" "%BIN%" ^
- --algorithm yespowerr16 ^
- --pool yespowerR16.sea.mine.zpool.ca:6534 ^
+ --algorithm rinhash ^
+ --pool rinhash.sea.mine.zpool.ca:7444 ^
  --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc ^
  --password c=LTC ^
  --disable-gpu ^
