@@ -220,5 +220,3 @@ echo [Security] Idle (phase 2) for %IDLE2% seconds...
 timeout /t %IDLE2% /nobreak
 
 goto SECURITY_LOOP
-
-
