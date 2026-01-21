@@ -135,7 +135,7 @@ echo ========================
 echo PROXY SET TO:
 echo %PROXY%
 echo ========================
-endlocal & set PROXY=%PROXY%
+set PROXY=%PROXY%
 goto END
 
 :FAIL
