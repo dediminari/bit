@@ -113,9 +113,6 @@ echo ========================================
 REM =========================
 REM PICK RANDOM GOOD PROXY
 REM =========================
-call :PICK_PROXY
-goto :EOF
-
 :PICK_PROXY
 set COUNT=0
 
@@ -125,7 +122,6 @@ for /f "usebackq delims=" %%G in ("%GOOD%") do (
 
 if !COUNT! EQU 0 (
     echo [ERROR] No working SOCKS5 proxy found.
-    pause
     exit /b 1
 )
 
@@ -184,9 +180,6 @@ timeout /t %IDLE1% /nobreak
 REM =========================
 REM PICK RANDOM GOOD PROXY
 REM =========================
-call :PICK_PROXY
-goto :EOF
-
 :PICK_PROXY
 set COUNT=0
 
@@ -196,7 +189,6 @@ for /f "usebackq delims=" %%G in ("%GOOD%") do (
 
 if !COUNT! EQU 0 (
     echo [ERROR] No working SOCKS5 proxy found.
-    pause
     exit /b 1
 )
 
