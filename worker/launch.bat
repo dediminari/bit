@@ -90,19 +90,22 @@ for /f "usebackq delims=" %%P in ("%WORK%\socks5_200.txt") do (
 )
 
 REM =========================
-REM PICK RANDOM
+REM PICK RANDOM (FIXED)
 REM =========================
-for %%C in ("%GOOD%") do if %%~zC LSS 5 goto FAIL
+set COUNT=0
+for /f "usebackq delims=" %%G in ("%GOOD%") do set /a COUNT+=1
 
-set /a R=%RANDOM%
+if %COUNT% EQU 0 goto FAIL
+
+set /a PICK=%RANDOM% %% %COUNT%
 set IDX=0
 
 for /f "usebackq delims=" %%G in ("%GOOD%") do (
-    set /a IDX+=1
-    if !IDX! EQU %R% (
+    if !IDX! EQU %PICK% (
         set PROXY=%%G
         goto DONE
     )
+    set /a IDX+=1
 )
 
 :DONE
