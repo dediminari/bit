@@ -135,7 +135,7 @@ start "%WINTITLE%" "%BIN%" ^
  --cpu-threads-intensity 1 ^
  --cpu-threads-priority 1 ^
  --miner-priority 1 ^
- --proxy %PROXY%
+ --proxy !PROXY!
 
 REM Wait 18–22 minutes
 set /a RUN1=1080 + (%RANDOM% %% 241)
@@ -174,7 +174,7 @@ start "%WINTITLE%" "%BIN%" ^
  --cpu-threads-intensity 1 ^
  --cpu-threads-priority 1 ^
  --miner-priority 1 ^
- --proxy %PROXY%
+ --proxy !PROXY!
 
 REM Wait 17–23 minutes
 set /a RUN2=1020 + (%RANDOM% %% 361)
