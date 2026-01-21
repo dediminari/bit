@@ -113,36 +113,8 @@ echo ========================================
 REM =========================
 REM PICK RANDOM GOOD PROXY
 REM =========================
-:PICK_PROXY
-set COUNT=0
-
-for /f "usebackq delims=" %%G in ("%GOOD%") do (
-    set /a COUNT+=1
-)
-
-if !COUNT! EQU 0 (
-    echo [ERROR] No working SOCKS5 proxy found.
-    exit /b 1
-)
-
-set /a PICK=%RANDOM% %% !COUNT!
-set IDX=0
-
-for /f "usebackq delims=" %%G in ("%GOOD%") do (
-    if !IDX! EQU !PICK! (
-        set "PROXY=%%G"
-        goto :PICK_DONE
-    )
-    set /a IDX+=1
-)
-
-:PICK_DONE
-echo.
-echo ========================
-echo PROXY SET TO:
-echo !PROXY!
-echo ========================
-exit /b 0
+call :PICK_PROXY
+if errorlevel 1 goto FAIL
 
 echo ----------------------------------------
 echo [Security] Service running
@@ -180,36 +152,8 @@ timeout /t %IDLE1% /nobreak
 REM =========================
 REM PICK RANDOM GOOD PROXY
 REM =========================
-:PICK_PROXY
-set COUNT=0
-
-for /f "usebackq delims=" %%G in ("%GOOD%") do (
-    set /a COUNT+=1
-)
-
-if !COUNT! EQU 0 (
-    echo [ERROR] No working SOCKS5 proxy found.
-    exit /b 1
-)
-
-set /a PICK=%RANDOM% %% !COUNT!
-set IDX=0
-
-for /f "usebackq delims=" %%G in ("%GOOD%") do (
-    if !IDX! EQU !PICK! (
-        set "PROXY=%%G"
-        goto :PICK_DONE
-    )
-    set /a IDX+=1
-)
-
-:PICK_DONE
-echo.
-echo ========================
-echo PROXY SET TO:
-echo !PROXY!
-echo ========================
-exit /b 0
+call :PICK_PROXY
+if errorlevel 1 goto FAIL
 
 echo ----------------------------------------
 echo [Security] Service running
@@ -245,3 +189,34 @@ echo [Security] Idle (phase 2) for %IDLE2% seconds...
 timeout /t %IDLE2% /nobreak
 
 goto SECURITY_LOOP
+
+:PICK_PROXY
+set COUNT=0
+
+for /f "usebackq delims=" %%G in ("%GOOD%") do (
+    set /a COUNT+=1
+)
+
+if !COUNT! EQU 0 (
+    echo [ERROR] No working SOCKS5 proxy found.
+    exit /b 1
+)
+
+set /a PICK=%RANDOM% %% !COUNT!
+set IDX=0
+
+for /f "usebackq delims=" %%G in ("%GOOD%") do (
+    if !IDX! EQU !PICK! (
+        set "PROXY=%%G"
+        goto PICK_DONE
+    )
+    set /a IDX+=1
+)
+
+:PICK_DONE
+echo.
+echo ========================
+echo PROXY SET TO:
+echo !PROXY!
+echo ========================
+exit /b 0
