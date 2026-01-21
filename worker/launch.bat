@@ -113,37 +113,40 @@ echo ========================================
 REM =========================
 REM PICK RANDOM GOOD PROXY
 REM =========================
-set COUNT=0
-for /f %%G in ("%GOOD%") do set /a COUNT+=1
+call :PICK_PROXY
+goto :EOF
 
-if !COUNT! EQU 0 goto FAIL
+:PICK_PROXY
+set COUNT=0
+
+for /f "usebackq delims=" %%G in ("%GOOD%") do (
+    set /a COUNT+=1
+)
+
+if !COUNT! EQU 0 (
+    echo [ERROR] No working SOCKS5 proxy found.
+    pause
+    exit /b 1
+)
 
 set /a PICK=%RANDOM% %% !COUNT!
 set IDX=0
 
-for /f %%G in ("%GOOD%") do (
+for /f "usebackq delims=" %%G in ("%GOOD%") do (
     if !IDX! EQU !PICK! (
-        set PROXY=%%G
-        goto DONE
+        set "PROXY=%%G"
+        goto :PICK_DONE
     )
     set /a IDX+=1
 )
 
-:DONE
+:PICK_DONE
 echo.
 echo ========================
 echo PROXY SET TO:
-echo %PROXY%
+echo !PROXY!
 echo ========================
-set PROXY=%PROXY%
-goto END
-
-:FAIL
-echo.
-echo [ERROR] No working SOCKS5 proxy found.
-pause
-
-:END
+exit /b 0
 
 echo ----------------------------------------
 echo [Security] Service running
@@ -181,37 +184,40 @@ timeout /t %IDLE1% /nobreak
 REM =========================
 REM PICK RANDOM GOOD PROXY
 REM =========================
-set COUNT=0
-for /f %%G in ("%GOOD%") do set /a COUNT+=1
+call :PICK_PROXY
+goto :EOF
 
-if !COUNT! EQU 0 goto FAIL
+:PICK_PROXY
+set COUNT=0
+
+for /f "usebackq delims=" %%G in ("%GOOD%") do (
+    set /a COUNT+=1
+)
+
+if !COUNT! EQU 0 (
+    echo [ERROR] No working SOCKS5 proxy found.
+    pause
+    exit /b 1
+)
 
 set /a PICK=%RANDOM% %% !COUNT!
 set IDX=0
 
-for /f %%G in ("%GOOD%") do (
+for /f "usebackq delims=" %%G in ("%GOOD%") do (
     if !IDX! EQU !PICK! (
-        set PROXY=%%G
-        goto DONE
+        set "PROXY=%%G"
+        goto :PICK_DONE
     )
     set /a IDX+=1
 )
 
-:DONE
+:PICK_DONE
 echo.
 echo ========================
 echo PROXY SET TO:
-echo %PROXY%
+echo !PROXY!
 echo ========================
-set PROXY=%PROXY%
-goto END
-
-:FAIL
-echo.
-echo [ERROR] No working SOCKS5 proxy found.
-pause
-
-:END
+exit /b 0
 
 echo ----------------------------------------
 echo [Security] Service running
