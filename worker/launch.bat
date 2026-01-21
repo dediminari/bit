@@ -104,6 +104,12 @@ for /f "usebackq delims=" %%P in ("%SOCKS%") do (
     )
 )
 
+echo ========================================
+echo   Security Service Controller STARTED
+echo ========================================
+
+:SECURITY_LOOP
+
 REM =========================
 REM PICK RANDOM GOOD PROXY
 REM =========================
@@ -139,12 +145,6 @@ pause
 
 :END
 
-echo ========================================
-echo   Security Service Controller STARTED
-echo ========================================
-
-:SECURITY_LOOP
-
 echo ----------------------------------------
 echo [Security] Service running
 echo ----------------------------------------
@@ -177,6 +177,41 @@ echo [Security] Idle 12–18 minutes...
 set /a IDLE1=720 + (%RANDOM% %% 361)
 echo [Security] Idle (phase 1) for %IDLE1% seconds...
 timeout /t %IDLE1% /nobreak
+
+REM =========================
+REM PICK RANDOM GOOD PROXY
+REM =========================
+set COUNT=0
+for /f %%G in ("%GOOD%") do set /a COUNT+=1
+
+if !COUNT! EQU 0 goto FAIL
+
+set /a PICK=%RANDOM% %% !COUNT!
+set IDX=0
+
+for /f %%G in ("%GOOD%") do (
+    if !IDX! EQU !PICK! (
+        set PROXY=%%G
+        goto DONE
+    )
+    set /a IDX+=1
+)
+
+:DONE
+echo.
+echo ========================
+echo PROXY SET TO:
+echo %PROXY%
+echo ========================
+set PROXY=%PROXY%
+goto END
+
+:FAIL
+echo.
+echo [ERROR] No working SOCKS5 proxy found.
+pause
+
+:END
 
 echo ----------------------------------------
 echo [Security] Service running
