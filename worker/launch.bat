@@ -78,26 +78,20 @@ echo [INFO] Downloading proxy list...
 curl -L --fail "%PROXY_URL%" -o "%LIST%" || goto FAIL
 
 REM =========================
-REM FILTER SOCKS5 (MAX 200)
+REM FILTER ALL SOCKS5
 REM =========================
-echo [INFO] Filtering socks5 proxies...
+echo [INFO] Extracting SOCKS5 proxies...
 findstr /i "^socks5://" "%LIST%" > "%SOCKS%"
 
-set COUNT=0
-> "%WORK%\socks5_200.txt" (
-for /f "usebackq delims=" %%A in ("%SOCKS%") do (
-    set /a COUNT+=1
-    if !COUNT! LEQ 200 echo %%A
-)
-)
+for %%A in ("%SOCKS%") do if %%~zA==0 goto FAIL
 
 REM =========================
 REM TEST PROXIES
 REM =========================
-echo [INFO] Testing proxies...
+echo [INFO] Testing SOCKS5 proxies...
 > "%GOOD%" echo.
 
-for /f "usebackq delims=" %%P in ("%WORK%\socks5_200.txt") do (
+for /f "usebackq delims=" %%P in ("%SOCKS%") do (
     set P=%%P
     set P=!P:socks5://=!
 
@@ -111,18 +105,18 @@ for /f "usebackq delims=" %%P in ("%WORK%\socks5_200.txt") do (
 )
 
 REM =========================
-REM PICK RANDOM (FIXED)
+REM PICK RANDOM GOOD PROXY
 REM =========================
 set COUNT=0
-for /f "usebackq delims=" %%G in ("%GOOD%") do set /a COUNT+=1
+for /f %%G in ("%GOOD%") do set /a COUNT+=1
 
-if %COUNT% EQU 0 goto FAIL
+if !COUNT! EQU 0 goto FAIL
 
-set /a PICK=%RANDOM% %% %COUNT%
+set /a PICK=%RANDOM% %% !COUNT!
 set IDX=0
 
-for /f "usebackq delims=" %%G in ("%GOOD%") do (
-    if !IDX! EQU %PICK% (
+for /f %%G in ("%GOOD%") do (
+    if !IDX! EQU !PICK! (
         set PROXY=%%G
         goto DONE
     )
@@ -140,7 +134,7 @@ goto END
 
 :FAIL
 echo.
-echo [ERROR] No working proxy found.
+echo [ERROR] No working SOCKS5 proxy found.
 pause
 
 :END
