@@ -183,5 +183,3 @@ echo PROXY SET TO:
 echo !PROXY!
 echo ========================
 exit /b 0
-
-
