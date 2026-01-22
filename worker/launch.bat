@@ -86,31 +86,28 @@ findstr /i "^socks5://" "%LIST%" > "%SOCKS%"
 for %%A in ("%SOCKS%") do if %%~zA==0 goto FAIL
 
 REM =========================
-REM TEST PROXIES
+REM TEST PROXIES (2-STAGE)
 REM =========================
 echo [INFO] Testing SOCKS5 proxies...
 > "%GOOD%" echo.
 
 for /f "usebackq delims=" %%P in ("%SOCKS%") do (
-    set "PASS=1"
     set "P=%%P"
     set "P=!P:socks5://=!"
 
-    REM --- FAST CONNECT TEST
+    REM --- TEST 1: FAST CONNECT
     curl --silent --max-time 2 ^
       --socks5-hostname !P! https://api.ipify.org >nul 2>&1
-    if errorlevel 1 set PASS=0
 
-    REM --- TLS / STABILITY TEST
-    if !PASS! EQU 1 (
+    if not errorlevel 1 (
+        REM --- TEST 2: TLS / STABILITY
         curl --silent --max-time 4 ^
           --socks5-hostname !P! https://www.cloudflare.com/cdn-cgi/trace >nul 2>&1
-        if errorlevel 1 set PASS=0
-    )
 
-    if !PASS! EQU 1 (
-        echo [OK] !P!
-        echo !P!>>"%GOOD%"
+        if not errorlevel 1 (
+            echo [OK] !P!
+            echo !P!>>"%GOOD%"
+        )
     )
 )
 
