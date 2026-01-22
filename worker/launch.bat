@@ -101,7 +101,7 @@ for /f "usebackq delims=" %%P in ("%SOCKS%") do (
 
     if not errorlevel 1 (
         REM --- TEST 2: TLS / STABILITY
-        curl --silent --max-time 4 ^
+        curl --silent --max-time 2 ^
           --socks5-hostname !P! https://www.cloudflare.com/cdn-cgi/trace >nul 2>&1
 
         if not errorlevel 1 (
