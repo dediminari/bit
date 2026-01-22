@@ -95,13 +95,18 @@ for /f "usebackq delims=" %%P in ("%SOCKS%") do (
     set P=%%P
     set P=!P:socks5://=!
 
+    REM --- FAST HANDSHAKE TEST (2s)
     curl --silent --max-time 2 ^
-      --socks5-hostname !P! https://api.ipify.org >nul 2>&1
+      --socks5-hostname !P! https://api.ipify.org >nul 2>&1 || goto NEXT_PROXY
 
-    if not errorlevel 1 (
-        echo [OK] !P!
-        echo !P!>>"%GOOD%"
-    )
+    REM --- STABILITY / TLS TEST (4s)
+    curl --silent --max-time 4 ^
+      --socks5-hostname !P! https://www.cloudflare.com/cdn-cgi/trace >nul 2>&1 || goto NEXT_PROXY
+
+    echo [OK] !P!
+    echo !P!>>"%GOOD%"
+
+    :NEXT_PROXY
 )
 
 echo ========================================
