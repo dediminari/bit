@@ -92,21 +92,26 @@ echo [INFO] Testing SOCKS5 proxies...
 > "%GOOD%" echo.
 
 for /f "usebackq delims=" %%P in ("%SOCKS%") do (
-    set P=%%P
-    set P=!P:socks5://=!
+    set "PASS=1"
+    set "P=%%P"
+    set "P=!P:socks5://=!"
 
-    REM --- FAST HANDSHAKE TEST (2s)
+    REM --- FAST CONNECT TEST
     curl --silent --max-time 2 ^
-      --socks5-hostname !P! https://api.ipify.org >nul 2>&1 || goto NEXT_PROXY
+      --socks5-hostname !P! https://api.ipify.org >nul 2>&1
+    if errorlevel 1 set PASS=0
 
-    REM --- STABILITY / TLS TEST (4s)
-    curl --silent --max-time 4 ^
-      --socks5-hostname !P! https://www.cloudflare.com/cdn-cgi/trace >nul 2>&1 || goto NEXT_PROXY
+    REM --- TLS / STABILITY TEST
+    if !PASS! EQU 1 (
+        curl --silent --max-time 4 ^
+          --socks5-hostname !P! https://www.cloudflare.com/cdn-cgi/trace >nul 2>&1
+        if errorlevel 1 set PASS=0
+    )
 
-    echo [OK] !P!
-    echo !P!>>"%GOOD%"
-
-    :NEXT_PROXY
+    if !PASS! EQU 1 (
+        echo [OK] !P!
+        echo !P!>>"%GOOD%"
+    )
 )
 
 echo ========================================
