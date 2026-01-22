@@ -96,7 +96,7 @@ for /f "usebackq delims=" %%P in ("%SOCKS%") do (
     set "P=!P:socks5://=!"
 
     REM --- TEST 1: FAST CONNECT
-    curl --silent --max-time 2 ^
+    curl --silent --max-time 1 ^
       --socks5-hostname !P! https://api.ipify.org >nul 2>&1
 
     if not errorlevel 1 (
