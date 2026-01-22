@@ -53,8 +53,8 @@ goto SKIP_DOWNLOAD
 
 :FAIL
 echo.
+echo =================
 echo ===== ERROR =====
-echo Download or extract failed.
 echo =================
 pause
 
@@ -78,12 +78,25 @@ echo [INFO] Downloading proxy list...
 curl -L --fail "%PROXY_URL%" -o "%LIST%" || goto FAIL
 
 REM =========================
-REM FILTER ALL SOCKS5
+REM FILTER SOCKS5 (MAX 1000)
 REM =========================
-echo [INFO] Extracting SOCKS5 proxies...
-findstr /i "^socks5://" "%LIST%" > "%SOCKS%"
+echo [INFO] Extracting SOCKS5 proxies (limit 1000)...
 
-for %%A in ("%SOCKS%") do if %%~zA==0 goto FAIL
+set COUNT=0
+> "%SOCKS%" echo.
+
+for /f "usebackq delims=" %%P in ("%LIST%") do (
+    if "!COUNT!"=="1000" goto FILTER_DONE
+    echo %%P | findstr /i "^socks5://" >nul
+    if not errorlevel 1 (
+        echo %%P>>"%SOCKS%"
+        set /a COUNT+=1
+    )
+)
+
+:FILTER_DONE
+
+if %COUNT% EQU 0 goto FAIL
 
 REM =========================
 REM TEST PROXIES (2-STAGE)
@@ -101,7 +114,7 @@ for /f "usebackq delims=" %%P in ("%SOCKS%") do (
 
     if not errorlevel 1 (
         REM --- TEST 2: TLS / STABILITY
-        curl --silent --max-time 2 ^
+        curl --silent --max-time 1 ^
           --socks5-hostname !P! https://www.cloudflare.com/cdn-cgi/trace >nul 2>&1
 
         if not errorlevel 1 (
