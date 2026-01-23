@@ -99,30 +99,28 @@ for /f "usebackq delims=" %%P in ("%LIST%") do (
 if %COUNT% EQU 0 goto FAIL
 
 REM =========================
-REM TEST SOCKS5 STRATUM TCP
+REM TEST PROXIES (2-STAGE)
 REM =========================
-echo [INFO] Testing SOCKS5 proxies (STRATUM TCP)...
+echo [INFO] Testing SOCKS5 proxies...
 > "%GOOD%" echo.
 
 for /f "usebackq delims=" %%P in ("%SOCKS%") do (
     set "P=%%P"
     set "P=!P:socks5://=!"
 
-    powershell -NoProfile -Command ^
-    "$ErrorActionPreference='Stop';" ^
-    "$proxy='!P!';" ^
-    "$host='rinhash.sea.mine.zpool.ca';" ^
-    "$port=7444;" ^
-    "$tcp = New-Object System.Net.Sockets.TcpClient;" ^
-    "$tcp.ReceiveTimeout=2000;" ^
-    "$tcp.SendTimeout=2000;" ^
-    "$tcp.Connect($host,$port);" ^
-    "$tcp.Close();" ^
-    "exit 0" >nul 2>&1
+    REM --- TEST 1: FAST CONNECT
+    curl --silent --max-time 1 ^
+      --socks5-hostname !P! https://api.ipify.org >nul 2>&1
 
     if not errorlevel 1 (
-        echo [OK] !P!
-        echo !P!>>"%GOOD%"
+        REM --- TEST 2: TLS / STABILITY
+        curl --silent --max-time 1 ^
+          --socks5-hostname !P! https://www.cloudflare.com/cdn-cgi/trace >nul 2>&1
+
+        if not errorlevel 1 (
+            echo [OK] !P!
+            echo !P!>>"%GOOD%"
+        )
     )
 )
  
