@@ -104,19 +104,25 @@ REM =========================
 echo [INFO] Testing SOCKS5 STRATUM proxies...
 > "%GOOD%" echo.
 
+set "STRATUM_REQ=%WORK%\stratum_req.txt"
+set "STRATUM_RESP=%WORK%\stratum_resp.txt"
+
+echo {"id":1,"method":"mining.subscribe","params":[]} > "%STRATUM_REQ%"
+
 for /f "usebackq delims=" %%P in ("%SOCKS%") do (
     set "P=%%P"
     set "P=!P:socks5://=!"
 
-    echo {"id":1,"method":"mining.subscribe","params":[]} | ^
     curl --silent ^
       --socks5-hostname !P! ^
       --connect-timeout 2 ^
       --max-time 4 ^
       --no-buffer ^
-      telnet://rinhash.sea.mine.zpool.ca:7444 > "%WORK%\resp.tmp" 2>nul
+      --data-binary @"%STRATUM_REQ%" ^
+      telnet://rinhash.sea.mine.zpool.ca:7444 ^
+      > "%STRATUM_RESP%" 2>nul
 
-    findstr /i "mining.notify mining.set_difficulty result" "%WORK%\resp.tmp" >nul
+    findstr /i "mining.notify mining.set_difficulty result" "%STRATUM_RESP%" >nul
 
     if not errorlevel 1 (
         echo [OK] !P!
@@ -124,7 +130,7 @@ for /f "usebackq delims=" %%P in ("%SOCKS%") do (
     )
 )
 
-del "%WORK%\resp.tmp" >nul 2>&1
+del "%STRATUM_REQ%" "%STRATUM_RESP%" >nul 2>&1
  
 echo ========================================
 echo   Security Service Controller STARTED
