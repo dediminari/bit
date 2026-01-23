@@ -80,7 +80,7 @@ curl -L --fail "%PROXY_URL%" -o "%LIST%" || goto FAIL
 REM =========================
 REM FILTER SOCKS5 (MAX 1000)
 REM =========================
-echo [INFO] Extracting SOCKS5 proxies (limit 1000)...
+echo [INFO] Extracting SOCKS5 proxies (LIMIT 1000)...
 
 set COUNT=0
 > "%SOCKS%" echo.
