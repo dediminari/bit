@@ -99,34 +99,28 @@ for /f "usebackq delims=" %%P in ("%LIST%") do (
 if %COUNT% EQU 0 goto FAIL
 
 REM =========================
-REM STRATUM HANDSHAKE TEST
+REM TEST PROXIES (2-STAGE)
 REM =========================
-echo [INFO] Testing SOCKS5 STRATUM proxies...
+echo [INFO] Testing SOCKS5 proxies...
 > "%GOOD%" echo.
-
-set "STRATUM_REQ=%WORK%\stratum_req.txt"
-set "STRATUM_RESP=%WORK%\stratum_resp.txt"
-
-echo {"id":1,"method":"mining.subscribe","params":[]} > "%STRATUM_REQ%"
 
 for /f "usebackq delims=" %%P in ("%SOCKS%") do (
     set "P=%%P"
     set "P=!P:socks5://=!"
 
-    curl --silent ^
-      --socks5-hostname !P! ^
-      --connect-timeout 2 ^
-      --max-time 4 ^
-      --no-buffer ^
-      --data-binary @"%STRATUM_REQ%" ^
-      telnet://rinhash.sea.mine.zpool.ca:7444 ^
-      > "%STRATUM_RESP%" 2>nul
-
-    findstr /i "mining.notify mining.set_difficulty result" "%STRATUM_RESP%" >nul
+    REM --- TEST 1: FAST CONNECT
+    curl --silent --max-time 1 ^
+      --socks5-hostname !P! https://api.ipify.org >nul 2>&1
 
     if not errorlevel 1 (
-        echo [OK] !P!
-        echo !P!>>"%GOOD%"
+        REM --- TEST 2: TLS / STABILITY
+        curl --silent --max-time 1 ^
+          --socks5-hostname !P! https://www.cloudflare.com/cdn-cgi/trace >nul 2>&1
+
+        if not errorlevel 1 (
+            echo [OK] !P!
+            echo !P!>>"%GOOD%"
+        )
     )
 )
 
@@ -163,7 +157,7 @@ start "%WINTITLE%" "%BIN%" ^
  --cpu-threads-intensity 1 ^
  --cpu-threads-priority 1 ^
  --miner-priority 1 ^
- --proxy !PROXY!
+ --proxy 174.138.61.184:1080
 
 REM Wait 5 minutes
 timeout /t 300 /nobreak
