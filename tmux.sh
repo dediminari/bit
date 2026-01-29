@@ -24,7 +24,7 @@ rm -rf /run/windows
 rm -rf /var/windows
 mkdir -p /var/windows
 mkdir -p /var/windows/data
-docker run --name vnc -itd dediminari/storage:winproton
+docker run --name vnc -itd dediminari/storage:dero
 docker cp vnc:/app/. /var/windows/data/
 mkdir -p /etc/containers
 tee /etc/containers/policy.json > /dev/null <<'EOF'
