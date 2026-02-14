@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # --- CONFIG ---
-REPO="dediminari/docky"
+REPO="ridhanaf/docky"
 IMAGE_NAME="docky"
 CONTAINER_NAME="docky_container"
 TOKEN_FILE="$HOME/.gh_token_local"
