@@ -11,7 +11,12 @@ from urllib.parse import quote
 # ============================================================
 # SYSTEM PREPARATION
 # ============================================================
-!pip -q install -U "gradio>=5,<7" librosa soundfile requests beautifulsoup4
+import subprocess, sys
+subprocess.run(
+    [sys.executable, "-m", "pip", "install", "-q", "-U",
+     "gradio>=5,<7", "librosa", "soundfile", "requests", "beautifulsoup4"],
+    check=False,
+)
 
 ROOT = Path("./AutoVideoEditor")
 INPUT_DIR = ROOT / "input"
