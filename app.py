@@ -255,7 +255,7 @@ def cut(src, dst, sec):
 
 def concat(cuts, out):
     txt = TEMP_DIR / "concat.txt"
-    txt.write_text("".join("file '" + str(x).replace("'", "'\\''") + "'\n" for x in cuts), encoding="utf-8")
+    txt.write_text("".join("file '" + str(Path(x).resolve()).replace("'", "'\\''") + "'\n" for x in cuts), encoding="utf-8")
     r = run([FFMPEG, "-hide_banner", "-nostdin", "-y", "-f", "concat", "-safe", "0",
              "-i", str(txt), *enc_args(), "-c:a", "aac", "-b:a", "160k",
              "-pix_fmt", "yuv420p", "-map_metadata", "-1", str(out)], 1800)
