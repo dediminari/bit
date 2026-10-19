@@ -255,7 +255,14 @@ def cut(src, dst, sec):
 
 def concat(cuts, out):
     txt = TEMP_DIR / "concat.txt"
-    txt.write_text("".join("file '" + str(Path(x).resolve()).replace("'", "'\\''") + "'\n" for x in cuts), encoding="utf-8")
+    # FIX: gunakan path absolut agar FFmpeg tidak resolve relatif terhadap concat.txt
+    txt.write_text(
+        "".join(
+            "file '" + str(Path(x).resolve()).replace("'", "'\\''") + "'\n"
+            for x in cuts
+        ),
+        encoding="utf-8",
+    )
     r = run([FFMPEG, "-hide_banner", "-nostdin", "-y", "-f", "concat", "-safe", "0",
              "-i", str(txt), *enc_args(), "-c:a", "aac", "-b:a", "160k",
              "-pix_fmt", "yuv420p", "-map_metadata", "-1", str(out)], 1800)
@@ -681,7 +688,8 @@ import gradio as gr
 initial_music = music_choices()
 initial_music_value = initial_music[0][1] if initial_music else None
 
-with gr.Blocks(title="Auto Video Editor", theme=gr.themes.Base()) as app:
+# FIX: theme dipindah ke launch()
+with gr.Blocks(title="Auto Video Editor") as app:
 
     # ---- BARIS 1: Video | Music | Content | Output ----
     with gr.Row(elem_id="mainrow", equal_height=False):
@@ -778,6 +786,8 @@ with gr.Blocks(title="Auto Video Editor", theme=gr.themes.Base()) as app:
 # LAUNCH — Cloudflare Tunnel (link publik tanpa login)
 # ============================================================
 PORT = 7860
+# FIX: cloudflared di direktori user (tidak butuh sudo)
+CLOUDFLARED_BIN = os.path.expanduser("~/cloudflared")
 
 def _kill_port_7860():
     killed = False
@@ -822,19 +832,19 @@ if __name__ == "__main__":
     except Exception:
         pass
 
-    # Install cloudflared kalau belum ada
-    if not os.path.exists("/usr/local/bin/cloudflared"):
-        print("📥 Install cloudflared...")
+    # FIX: install cloudflared ke ~/cloudflared (bukan /usr/local/bin/)
+    if not os.path.exists(CLOUDFLARED_BIN):
+        print("📥 Install cloudflared ke ~/cloudflared...")
         subprocess.run(
-            "wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 "
-            "-O /usr/local/bin/cloudflared && chmod +x /usr/local/bin/cloudflared",
+            f"wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 "
+            f"-O {CLOUDFLARED_BIN} && chmod +x {CLOUDFLARED_BIN}",
             shell=True, check=True,
         )
-        print("✅ cloudflared terinstall.")
+        print(f"✅ cloudflared terinstall: {CLOUDFLARED_BIN}")
     else:
-        print("✅ cloudflared sudah terinstall.")
+        print(f"✅ cloudflared sudah ada: {CLOUDFLARED_BIN}")
 
-    # Launch Gradio (background)
+    # Launch Gradio (background) — FIX: theme di sini
     print(f"▶ Launch Gradio di port {PORT}...")
     try:
         app.launch(
@@ -844,16 +854,17 @@ if __name__ == "__main__":
             debug=False,
             quiet=True,
             prevent_thread_lock=True,
+            theme=gr.themes.Base(),
         )
         print("✅ Gradio jalan.")
     except Exception as e:
         print(f"❌ Gagal launch Gradio: {e}")
         raise
 
-    # Buka Cloudflare Tunnel
+    # Buka Cloudflare Tunnel — FIX: pakai CLOUDFLARED_BIN
     print("🌐 Membuka Cloudflare Tunnel...")
     tunnel = subprocess.Popen(
-        ["cloudflared", "tunnel", "--url", f"http://127.0.0.1:{PORT}",
+        [CLOUDFLARED_BIN, "tunnel", "--url", f"http://127.0.0.1:{PORT}",
          "--no-autoupdate", "--protocol", "http2"],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
     )
