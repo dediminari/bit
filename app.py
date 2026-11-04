@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Auto Video Editor — Cloud Shell + Cloudflare Tunnel
-Revisi final: caption AI Gemini otomatis saat Caption kosong,
-state produk & prompt selalu sinkron, logging eksplisit.
+Revisi final: setiap klik Generate SELALU regenerate caption via AI.
+Caption lama diabaikan (tidak dipertahankan).
 Link publik: https://xxxx.trycloudflare.com (tanpa login Google).
 """
 
@@ -671,7 +671,7 @@ hanya fakta relevan tentang produk.
     try:
         from google import genai
         model_name = os.environ.get(
-            "GEMINI_MODEL", "gemini-3.5-flash-lite"
+            "GEMINI_MODEL", "gemini-2.0-flash"
         ).strip()
         if lines is not None:
             log(
@@ -755,8 +755,7 @@ def apply_selected_product(product_id, product_title, product_link, shop_name):
         link,
         shop,
         prompt,
-        'Produk dipilih. Prompt referensi diperbarui. '
-        'Kosongkan kotak Caption agar AI Gemini membuat caption baru.',
+        'Produk dipilih. Prompt referensi diperbarui.',
     )
 
 
@@ -950,92 +949,70 @@ def render_video(videos, music_path, output_name, caption,
 
 
 # ============================================================
-# COMPOSE CAPTION — log eksplisit, error tidak ditelan
-# ============================================================
-def _compose_caption(caption_text, prompt_reference, product_link,
-                     product_title, shop_name, lines):
-    """Tentukan caption final. Selalu log keputusan secara eksplisit."""
-    manual = str(caption_text or "").strip()
-    if manual:
-        log(
-            lines,
-            f"Caption: pakai MANUAL ({len(manual)} chars). "
-            f"AI tidak dipanggil.",
-        )
-        return manual
-
-    log(lines, "Caption: kosong → memanggil AI Gemini...")
-    log(
-        lines,
-        "  sumber prompt_reference: "
-        f"{len(str(prompt_reference or ''))} chars",
-    )
-    log(lines, f"  product_link: {str(product_link or '(kosong)')[:80]}")
-    log(lines, f"  product_title: {str(product_title or '(kosong)')[:80]}")
-    log(lines, f"  shop_name: {str(shop_name or '(kosong)')[:80]}")
-
-    ai_caption = generate_ai_caption(
-        product_link=product_link,
-        product_title=product_title,
-        shop_name=shop_name,
-        prompt_reference=prompt_reference,
-        lines=lines,
-    )
-
-    final = str(ai_caption or "").strip()
-    if not final:
-        raise RuntimeError("AI mengembalikan caption kosong.")
-    log(
-        lines,
-        f"✅ Caption AI diterima ({len(final)} chars): "
-        f"{final[:120]}...",
-    )
-    return final
-
-
-# ============================================================
-# GENERATE — compose caption lalu render
+# GENERATE — SELALU regenerate caption via AI
 # ============================================================
 def generate_render(
     videos, music_path, output_name, caption_text, duration_choice,
     prompt_reference="", product_link="", product_title="", shop_name=""
 ):
+    """Setiap klik Generate:
+       - Caption lama DIABAIKAN (selalu regenerate via AI)
+       - Sumber: prompt_reference > fetch halaman produk > judul+toko
+       - Hasil AI ditulis kembali ke kotak Caption
+       - Kalau AI gagal: Caption dikosongkan, error muncul di Log
+    """
     lines = []
-    caption_text = str(caption_text or "").strip()
-
     try:
         reset_live_log()
         log(lines, "=== GENERATE START ===")
         log(
             lines,
-            f"caption input ({len(caption_text)} chars): "
-            f"{caption_text[:80] or '(kosong)'}",
+            f"caption lama diabaikan "
+            f"({len(str(caption_text or ''))} chars). "
+            f"Selalu regenerate via AI.",
         )
+        log(
+            lines,
+            "  sumber prompt_reference: "
+            f"{len(str(prompt_reference or ''))} chars",
+        )
+        log(lines, f"  product_link: {str(product_link or '(kosong)')[:80]}")
+        log(lines, f"  product_title: {str(product_title or '(kosong)')[:80]}")
+        log(lines, f"  shop_name: {str(shop_name or '(kosong)')[:80]}")
 
-        caption_text = _compose_caption(
-            caption_text=caption_text,
-            prompt_reference=prompt_reference,
+        caption_final = generate_ai_caption(
             product_link=product_link,
             product_title=product_title,
             shop_name=shop_name,
+            prompt_reference=prompt_reference,
             lines=lines,
         )
 
+        caption_final = str(caption_final or "").strip()
+        if not caption_final:
+            raise RuntimeError("AI mengembalikan caption kosong.")
+
+        log(
+            lines,
+            f"✅ Caption AI diterima ({len(caption_final)} chars): "
+            f"{caption_final[:120]}...",
+        )
+
         preview_path, download_path, tiktok_url = render_video(
-            videos, music_path, output_name, caption_text, duration_choice
+            videos, music_path, output_name, caption_final, duration_choice
         )
 
         combined_log = read_live_log()
         if not preview_path:
             log(lines, "Render gagal, caption final tetap dikembalikan.")
-            return combined_log, None, None, "", caption_text
+            return combined_log, None, None, "", caption_final
 
         return (
             combined_log,
             preview_path,
             download_path,
             make_clickable_tiktok_link(tiktok_url) if tiktok_url else "",
-            caption_text,
+            caption_final,
         )
     except Exception as e:
         log(lines, f"❌ GENERATE ERROR: {type(e).__name__}: {e}")
@@ -1043,7 +1020,19 @@ def generate_render(
             save_log(lines)
         except Exception:
             pass
-        return read_live_log(), None, None, "", caption_text
+        # Caption dikosongkan agar jelas tidak ada caption valid
+        return read_live_log(), None, None, "", ""
+
+
+# ============================================================
+# HELPER: kosongkan caption + log (dipakai saat tombol diklik)
+# ============================================================
+def clear_caption_and_log():
+    """Dipanggil PERTAMA saat tombol Generate diklik.
+    Kosongkan kotak Caption (agar UI terlihat bersih dulu),
+    lalu kosongkan logbox. Return tuple (caption_baru, log_baru)."""
+    reset_live_log()
+    return "", ""
 
 # ============================================================
 # UI
@@ -1114,8 +1103,8 @@ with gr.Blocks(title="Auto Video Editor") as app:
             caption = gr.Textbox(
                 label="Caption",
                 placeholder=(
-                    "Opsional: isi caption manual. Jika kosong, AI Gemini "
-                    "akan membuat caption dari data produk."
+                    "Caption akan dibuat otomatis oleh AI setiap kali "
+                    "Generate diklik."
                 ),
                 lines=5, interactive=True, elem_id="captionbox",
             )
@@ -1137,8 +1126,8 @@ with gr.Blocks(title="Auto Video Editor") as app:
             prompt_box = gr.Textbox(
                 label="",
                 placeholder=(
-                    "Isi deskripsi produk. Jika kotak Caption dikosongkan, "
-                    "AI akan memakai isi kotak ini sebagai sumber utama."
+                    "Isi deskripsi produk. AI akan memakai isi kotak ini "
+                    "sebagai sumber utama caption."
                 ),
                 lines=9,
                 elem_id="promptbox",
@@ -1153,7 +1142,7 @@ with gr.Blocks(title="Auto Video Editor") as app:
             )
             log_timer.tick(read_live_log, inputs=[], outputs=logbox)
 
-    # Hidden state produk (diisi dari luar / dipakai AI kalau prompt kosong)
+    # Hidden state produk (dipakai AI kalau prompt_box kosong)
     selected_product_id = gr.Textbox(
         label="Product ID", visible=False,
         elem_id="selected_product_id",
@@ -1189,14 +1178,15 @@ with gr.Blocks(title="Auto Video Editor") as app:
     )
     music.change(select_music, inputs=music, outputs=music_player)
 
-    # Tombol Generate:
-    #   Event 1: reset logbox (biar log baru terlihat bersih)
-    #   Event 2: generate_render — caption hanya sebagai OUTPUT
-    #            supaya nilai yang dibaca selalu fresh dari UI.
+    # Tombol Generate — 3 tahap berurutan:
+    #  1) clear_caption_and_log  → kosongkan kotak Caption & logbox
+    #  2) generate_render        → AI regenerate caption + render
+    #  3) (opsional) — tidak perlu; generate_render sudah
+    #     mengembalikan caption_final ke kotak Caption.
     action_btn.click(
-        fn=reset_live_log,
+        fn=clear_caption_and_log,
         inputs=[],
-        outputs=[logbox],
+        outputs=[caption, logbox],
     ).then(
         fn=generate_render,
         inputs=[
