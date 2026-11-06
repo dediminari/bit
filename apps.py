@@ -194,9 +194,6 @@ def upload_to_temp_host(image_path):
 
 # ---------- Agnes Image ----------
 def agnes_generate_image(prompt, reference_image_path=None, out_name="frame"):
-    """Generate 1 gambar via Agnes image-to-image.
-    Return: path file lokal.
-    """
     import requests
     if not AGNES_API_KEY:
         raise RuntimeError("AGNES_API_KEY belum diatur.")
@@ -208,14 +205,16 @@ def agnes_generate_image(prompt, reference_image_path=None, out_name="frame"):
     payload = {
         "model": AGNES_IMAGE_MODEL,
         "prompt": prompt,
-        "size": "1K",
-        "ratio": "9:16",
-        "extra_body": {"response_format": "url"},
+        "size": "1K",                          # 或 "768x1024"
+        "extra_body": {
+            "response_format": "url",
+            "ratio": "9:16",                   # ✅ 移入 extra_body
+        },
     }
 
     if reference_image_path:
         ref_url = upload_to_temp_host(reference_image_path)
-        payload["extra_body"]["image"] = [ref_url]
+        payload["extra_body"]["image"] = [ref_url]   # ✅ 放在 extra_body 内
         studio_log(f"Reference image uploaded: {ref_url[:60]}...")
 
     studio_log(f"Agnes image request → {AGNES_IMAGE_MODEL}")
@@ -237,7 +236,6 @@ def agnes_generate_image(prompt, reference_image_path=None, out_name="frame"):
     studio_log(f"Frame saved: {out_path.name} ({out_path.stat().st_size/1e6:.2f} MB)")
     return str(out_path)
 
-
 # ---------- Agnes Video ----------
 def agnes_generate_video(first_frame_path, prompt, out_name="video"):
     """Image-to-video via Agnes, async polling.
@@ -257,7 +255,7 @@ def agnes_generate_video(first_frame_path, prompt, out_name="video"):
     payload = {
         "model": AGNES_VIDEO_MODEL,
         "prompt": prompt,
-        "seconds": "5",
+        "seconds": "6",
         "mode": "keyframe",
         "size": "720P",
         "aspect_ratio": "9:16",
