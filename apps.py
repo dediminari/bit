@@ -6,6 +6,7 @@ Fase 2: Video Editor (Gemini caption + FFmpeg render) — alur lama
 
 import os, sys, subprocess, shutil, json, math, datetime, zipfile, tempfile
 import urllib.request, hashlib, re, time, signal, base64, threading
+import concurrent.futures
 from pathlib import Path
 from urllib.parse import quote
 
@@ -83,7 +84,7 @@ print(sync_msg)
 AGNES_API_KEY = os.environ.get("AGNES_API_KEY", "").strip()
 AGNES_BASE = "https://apihub.agnes-ai.com/v1"
 AGNES_IMAGE_MODEL = "agnes-image-2.5-flash"
-AGNES_VIDEO_MODEL = "agnes-video-2.5-flash"
+AGNES_VIDEO_MODEL = "agnes-video-2.5-flash"  # default
 
 _STUDIO_LOG = LOG_DIR / "studio.log"
 
@@ -127,6 +128,21 @@ def reset_studio_log():
         _STUDIO_LOG.write_text("", encoding="utf-8")
     except Exception:
         pass
+
+
+def _run_with_cancel(fn, cancel_event, poll_interval=0.2):
+    """Jalankan fn di thread terpisah, tunggu sambil cek cancel_event."""
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(fn)
+        while not future.done():
+            if cancel_event and cancel_event.is_set():
+                future.cancel()
+                raise RuntimeError("Dibatalkan oleh pengguna.")
+            if cancel_event:
+                cancel_event.wait(poll_interval)
+            else:
+                time.sleep(poll_interval)
+        return future.result()
 
 
 def upload_to_temp_host(image_path):
@@ -229,8 +245,13 @@ def agnes_generate_image(prompt, reference_image_path=None, out_name="frame",
         raise RuntimeError("Dibatalkan oleh pengguna.")
 
     studio_log(f"Agnes image request → {AGNES_IMAGE_MODEL}")
-    r = requests.post(f"{AGNES_BASE}/images/generations",
-                      headers=headers, json=payload, timeout=180)
+
+    def _do_request():
+        return requests.post(f"{AGNES_BASE}/images/generations",
+                             headers=headers, json=payload, timeout=180)
+
+    r = _run_with_cancel(_do_request, cancel_event)
+
     if not r.ok:
         raise RuntimeError(f"Agnes image HTTP {r.status_code}: {r.text[:300]}")
     data = r.json()
@@ -244,15 +265,23 @@ def agnes_generate_image(prompt, reference_image_path=None, out_name="frame",
     if cancel_event and cancel_event.is_set():
         raise RuntimeError("Dibatalkan oleh pengguna.")
 
+    def _do_download():
+        return requests.get(image_url, timeout=120).content
+
+    img_data = _run_with_cancel(_do_download, cancel_event)
     out_path = FRAMES_DIR / f"{out_name}_{int(time.time())}.png"
-    img_data = requests.get(image_url, timeout=120).content
     out_path.write_bytes(img_data)
     studio_log(f"Frame saved: {out_path.name} ({out_path.stat().st_size/1e6:.2f} MB)")
     return str(out_path)
 
 
 def agnes_generate_video(first_frame_path, prompt, out_name="video",
-                         max_queue_retries=30, cancel_event=None):
+                         model_choice="2.5-flash",
+                         max_total_wait=900, cancel_event=None):
+    """Image-to-video via Agnes. Mendukung dua model:
+    - 2.5-flash: parameter standar (seconds, size, aspect_ratio, first_frame)
+    - v2.0: parameter legacy (num_frames, frame_rate, height, width, image)
+    """
     import requests
     if not AGNES_API_KEY:
         raise RuntimeError("AGNES_API_KEY belum diatur.")
@@ -267,30 +296,64 @@ def agnes_generate_video(first_frame_path, prompt, out_name="video",
         "Authorization": f"Bearer {AGNES_API_KEY}",
         "Content-Type": "application/json",
     }
-    payload = {
-        "model": AGNES_VIDEO_MODEL,
-        "prompt": prompt,
-        "seconds": "6",
-        "mode": "keyframe",
-        "size": "720P",
-        "aspect_ratio": "9:16",
-        "first_frame": frame_url,
-    }
 
-    studio_log(f"Agnes video request → {AGNES_VIDEO_MODEL}")
+    use_legacy = (str(model_choice).strip() == "v2.0")
+    if use_legacy:
+        # v2.0: parameter legacy
+        model_name = "agnes-video-v2.0"
+        payload = {
+            "model": model_name,
+            "prompt": prompt,
+            "image": frame_url,
+            "num_frames": 121,   # ~5 detik @ 24fps
+            "frame_rate": 24,
+            "height": 1280,      # portrait 9:16
+            "width": 720,
+        }
+        poll_model = model_name
+    else:
+        # 2.5-flash: parameter standar
+        model_name = AGNES_VIDEO_MODEL
+        payload = {
+            "model": model_name,
+            "prompt": prompt,
+            "seconds": "6",
+            "mode": "keyframe",
+            "size": "720P",
+            "aspect_ratio": "9:16",
+            "first_frame": frame_url,
+        }
+        poll_model = model_name
+
+    studio_log(f"Agnes video request → {model_name} (exponential backoff)")
+
     r = None
-    for queue_attempt in range(max_queue_retries):
+    waited = 0
+    attempt = 0
+    base_wait = 30
+    max_wait_per_attempt = 300
+
+    while waited < max_total_wait:
         if cancel_event and cancel_event.is_set():
             raise RuntimeError("Dibatalkan oleh pengguna.")
-        r = requests.post(f"{AGNES_BASE}/videos",
-                          headers=headers, json=payload, timeout=60)
+
+        attempt += 1
+
+        def _do_post():
+            return requests.post(f"{AGNES_BASE}/videos",
+                                 headers=headers, json=payload, timeout=60)
+
+        r = _run_with_cancel(_do_post, cancel_event)
+
         if r.status_code == 503 and "video_queue_full" in r.text:
-            wait = 30
-            studio_log(f"Antrean video penuh (503), percobaan {queue_attempt+1}/{max_queue_retries}, tunggu {wait}s...")
-            for _ in range(wait):
+            wait_time = min(base_wait * (2 ** (attempt - 1)), max_wait_per_attempt)
+            wait_time = min(wait_time, max_total_wait - waited)
+            studio_log(f"Antrean penuh (503), percobaan {attempt}, tunggu {wait_time}s (total {waited}s/{max_total_wait}s)...")
+            for _ in range(int(wait_time)):
                 if cancel_event and cancel_event.is_set():
                     raise RuntimeError("Dibatalkan oleh pengguna.")
                 time.sleep(1)
+            waited += wait_time
             continue
         break
 
@@ -307,12 +370,13 @@ def agnes_generate_video(first_frame_path, prompt, out_name="video",
     studio_log(f"Video task created: {video_id}. Polling...")
 
     poll_url = (f"https://apihub.agnes-ai.com/agnesapi"
-                f"?video_id={video_id}&model_name={AGNES_VIDEO_MODEL}")
+                f"?video_id={video_id}&model_name={poll_model}")
     last_status = ""
+
     for attempt in range(180):
         if cancel_event and cancel_event.is_set():
             raise RuntimeError("Dibatalkan oleh pengguna.")
-        time.sleep(5)
+        time.sleep(2)
         try:
             s = requests.get(poll_url, headers=headers, timeout=30).json()
         except Exception as e:
@@ -330,8 +394,12 @@ def agnes_generate_video(first_frame_path, prompt, out_name="video",
                 raise RuntimeError("Status completed tapi url kosong.")
             if cancel_event and cancel_event.is_set():
                 raise RuntimeError("Dibatalkan oleh pengguna.")
+
+            def _do_download():
+                return requests.get(video_url, timeout=180).content
+
+            vid_data = _run_with_cancel(_do_download, cancel_event)
             out_path = VIDEOS_DIR / f"{out_name}_{int(time.time())}.mp4"
-            vid_data = requests.get(video_url, timeout=180).content
             out_path.write_bytes(vid_data)
             studio_log(f"Video saved: {out_path.name} ({out_path.stat().st_size/1e6:.2f} MB)")
             return str(out_path)
@@ -339,7 +407,7 @@ def agnes_generate_video(first_frame_path, prompt, out_name="video",
         if status == "failed":
             raise RuntimeError(f"Agnes video failed: {s.get('error') or s}")
 
-    raise RuntimeError("Agnes video timeout setelah 15 menit.")
+    raise RuntimeError("Agnes video timeout setelah polling 6 menit.")
 
 # ============================================================
 # PRODUCT ANALYSIS + PROMPT BUILDER + WORKFLOW ENGINE
@@ -427,8 +495,10 @@ def build_image_prompt(profile, frame_index):
         f"Letakkan produk ini di tangan perempuan dengan {handling}, "
         "POV orang pertama, sudut kamera 30 derajat ke bawah, jarak 40 cm. "
         "Tangan feminin, anatomi normal, jumlah jari benar. "
-        "Latar: taman tropis Indonesia, rumput hijau, pohon besar, cahaya alami, "
-        "tanpa orang, hewan, atau kendaraan. "
+        "Latar: taman kota Jakarta, Indonesia. Taman pusat kota yang rapi dan terawat, "
+        "pohon rindang, jalur setapak, bangku taman, rumput hijau, "
+        "gedung rendah terlihat di kejauhan, langit cerah, cahaya alami. "
+        "Bukan hutan. Tanpa orang, hewan, atau kendaraan. "
         f"Variasi halus hanya pada detail latar untuk frame {frame_index}. "
         "Komposisi portrait 9:16, fotorealistis."
     )
@@ -442,7 +512,7 @@ def build_video_prompt():
         "Tangan dan produk bergerak sebagai satu kesatuan. "
         "Pegangan dan posisi jari tetap stabil. "
         "Produk tetap terlihat jelas dan mempertahankan tampilan aslinya. "
-        "Kamera diam. Hanya gerakan halus di latar taman tropis. "
+        "Kamera diam. Hanya gerakan halus di latar taman kota. "
         "Jangan mengubah anatomi tangan, jumlah jari, atau bentuk produk."
     )
 
@@ -978,11 +1048,20 @@ def render_video(videos, music_path, output_name, caption, duration_choice="21s"
 
 
 def generate_render(videos, music_path, output_name, caption_text, duration_choice,
-                    prompt_reference="", product_link="", product_title="", shop_name=""):
+                    prompt_reference="", product_link="", product_title="", shop_name="",
+                    studio_picked=None):
     lines = []
     try:
         reset_live_log()
         log(lines, "=== GENERATE START ===")
+
+        studio_list = normalize_video_files(studio_picked)
+        manual_list = normalize_video_files(videos)
+        combined = studio_list + manual_list
+
+        if not combined:
+            raise RuntimeError("Pilih video dari Studio atau upload video manual.")
+
         caption_final = generate_ai_caption(
             product_link=product_link, product_title=product_title,
             shop_name=shop_name, prompt_reference=prompt_reference, lines=lines,
@@ -991,7 +1070,7 @@ def generate_render(videos, music_path, output_name, caption_text, duration_choi
             raise RuntimeError("AI caption kosong.")
 
         preview_path, download_path, tiktok_url = render_video(
-            videos, music_path, output_name, caption_final, duration_choice
+            combined, music_path, output_name, caption_final, duration_choice
         )
         combined_log = read_live_log()
         if not preview_path:
@@ -1036,6 +1115,12 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
 
             with gr.Column(scale=1, min_width=280):
                 gr.Markdown("Generator")
+                video_model_choice = gr.Dropdown(
+                    label="Model Video",
+                    choices=["2.5-flash", "v2.0"],
+                    value="2.5-flash",
+                    allow_custom_value=False,
+                )
                 gen_status = gr.Textbox(label="Status", lines=3, interactive=False)
                 generate_btn = gr.Button("Generate", variant="primary", size="lg")
                 regenerate_btn = gr.Button("Regenerate", variant="secondary", visible=False)
@@ -1047,7 +1132,6 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
                 send_to_editor_btn = gr.Button("Kirim ke Video Editor",
                                                variant="secondary", visible=False)
 
-        # ---------- GALERI FRAMES & VIDEOS ----------
         with gr.Row(equal_height=False):
             with gr.Column(scale=1):
                 gr.Markdown("Frames (4)")
@@ -1062,7 +1146,6 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
                     object_fit="cover", interactive=False,
                 )
 
-        # ---------- LOG DI BAWAH ----------
         with gr.Row(equal_height=False):
             with gr.Column(scale=1):
                 gr.Markdown("Log")
@@ -1104,7 +1187,18 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
                      send_to_editor_btn, generate_btn],
         )
 
-        def on_generate(state, product_image, sid, force_regenerate=False):
+        def on_generate_start(state):
+            state = dict(state or fresh_workflow_state())
+            return (
+                state,
+                "Sedang generate... Klik Cancel untuk membatalkan.",
+                gr.update(visible=True),
+                gr.update(visible=False),
+                gr.update(visible=False),
+                gr.update(visible=False),
+            )
+
+        def on_generate(state, product_image, sid, video_model, force_regenerate=False):
             state = dict(state or fresh_workflow_state())
             if not state.get("profile"):
                 return (state, "Lakukan Analyze Product dulu.", workflow_progress_text(state),
@@ -1136,7 +1230,7 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
                     return (state, f"{name} siap. Review lalu Approve atau Regenerate.",
                             workflow_progress_text(state), out, None,
                             gr.update(visible=True), gr.update(visible=True),
-                            gr.update(visible=True), gr.update(visible=False),
+                            gr.update(visible=False), gr.update(visible=False),
                             gr.update(visible=False), gr.update(visible=False))
                 else:
                     if len(state["approved_frames"]) < idx:
@@ -1144,6 +1238,7 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
                     first = state["approved_frames"][idx - 1]
                     prompt = build_video_prompt()
                     out = agnes_generate_video(first, prompt, out_name=f"video{idx}",
+                                               model_choice=video_model,
                                                cancel_event=cancel_event)
                     state["current_type"] = "video"
                     state["current_output"] = out
@@ -1151,7 +1246,7 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
                     return (state, f"{name} siap. Review lalu Approve atau Regenerate.",
                             workflow_progress_text(state), None, out,
                             gr.update(visible=True), gr.update(visible=True),
-                            gr.update(visible=True), gr.update(visible=False),
+                            gr.update(visible=False), gr.update(visible=False),
                             gr.update(visible=False), gr.update(visible=False))
             except Exception as e:
                 state["status"] = "error"
@@ -1161,15 +1256,23 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
                         gr.update(visible=True), gr.update(visible=False))
 
         gen_evt = generate_btn.click(
-            lambda s, img, sid: on_generate(s, img, sid, False),
-            inputs=[wf_state, product_image, session_id],
+            on_generate_start, inputs=[wf_state],
+            outputs=[wf_state, gen_status, cancel_btn, generate_btn,
+                     regenerate_btn, approve_btn],
+        ).then(
+            lambda s, img, sid, vm: on_generate(s, img, sid, vm, False),
+            inputs=[wf_state, product_image, session_id, video_model_choice],
             outputs=[wf_state, gen_status, workflow_status, current_preview, current_video,
                      regenerate_btn, approve_btn, cancel_btn, send_to_editor_btn,
                      generate_btn, current_stage],
         )
         regen_evt = regenerate_btn.click(
-            lambda s, img, sid: on_generate(s, img, sid, True),
-            inputs=[wf_state, product_image, session_id],
+            on_generate_start, inputs=[wf_state],
+            outputs=[wf_state, gen_status, cancel_btn, generate_btn,
+                     regenerate_btn, approve_btn],
+        ).then(
+            lambda s, img, sid, vm: on_generate(s, img, sid, vm, True),
+            inputs=[wf_state, product_image, session_id, video_model_choice],
             outputs=[wf_state, gen_status, workflow_status, current_preview, current_video,
                      regenerate_btn, approve_btn, cancel_btn, send_to_editor_btn,
                      generate_btn, current_stage],
@@ -1296,8 +1399,13 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
         with gr.Row(elem_id="mainrow", equal_height=False):
             with gr.Column(scale=1, min_width=300, elem_id="videos"):
                 gr.Markdown("Video", elem_classes=["ave-col-title"])
-                videos = gr.File(label="", file_count="multiple",
-                                 file_types=["video"], type="filepath", height=200)
+                studio_picker = gr.Dropdown(
+                    label="Dari Product Studio",
+                    choices=[], value=[], multiselect=True,
+                    allow_custom_value=False,
+                )
+                manual_videos = gr.File(label="Upload manual", file_count="multiple",
+                                        file_types=["video"], type="filepath", height=150)
                 with gr.Row(elem_id="video-actions"):
                     add_video = gr.UploadButton("＋ Add", file_count="multiple",
                                                 file_types=["video"], size="sm")
@@ -1349,15 +1457,16 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
 
         output_name.input(update_render_button, inputs=output_name, outputs=action_btn)
         output_name.change(update_render_button, inputs=output_name, outputs=action_btn)
-        add_video.upload(combine_video_files, inputs=[videos, add_video], outputs=videos)
-        clear_video.click(clear_video_files, inputs=[], outputs=videos)
+        add_video.upload(combine_video_files, inputs=[manual_videos, add_video],
+                         outputs=manual_videos)
+        clear_video.click(clear_video_files, inputs=[], outputs=manual_videos)
         add_music.click(add_uploaded_music, inputs=[music_upload],
                         outputs=[music, music_upload, music_player])
         music.change(select_music, inputs=music, outputs=music_player)
         action_btn.click(fn=clear_caption_and_log, inputs=[], outputs=[caption, logbox]).then(
             fn=generate_render,
-            inputs=[videos, music, output_name, caption, duration_choice,
-                    prompt_box, product_link, product_title, shop_name],
+            inputs=[manual_videos, music, output_name, caption, duration_choice,
+                    prompt_box, product_link, product_title, shop_name, studio_picker],
             outputs=[logbox, preview, download, tiktok_link, caption],
         )
 
@@ -1367,12 +1476,12 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
         if len(vids) < 4:
             return (state, f"Butuh 4 video disetujui, saat ini {len(vids)}.",
                     gr.update(), "")
-        return (state, f"{len(vids)} video dikirim ke Video Editor.",
-                gr.update(value=vids), "")
+        return (state, f"{len(vids)} video dikirim ke Video Editor. Otomatis terpilih.",
+                gr.update(choices=vids, value=vids), "")
 
     send_to_editor_btn.click(
         on_send_to_editor, inputs=[wf_state],
-        outputs=[wf_state, gen_status, videos, studio_logbox],
+        outputs=[wf_state, gen_status, studio_picker, studio_logbox],
     )
 
 # ============================================================
