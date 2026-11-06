@@ -5,7 +5,7 @@ Fase 2: Video Editor (Gemini caption + FFmpeg render) — alur lama
 """
 
 import os, sys, subprocess, shutil, json, math, datetime, zipfile, tempfile
-import urllib.request, hashlib, re, time, signal
+import urllib.request, hashlib, re, time, signal, base64, threading
 from pathlib import Path
 from urllib.parse import quote
 
@@ -27,7 +27,7 @@ MUSIC_DIR = ROOT / "music"
 OUTPUT_DIR = ROOT / "output"
 TEMP_DIR = ROOT / "temp"
 LOG_DIR = ROOT / "logs"
-STUDIO_DIR = ROOT / "studio"          # baru: hasil Product Studio
+STUDIO_DIR = ROOT / "studio"
 FRAMES_DIR = STUDIO_DIR / "frames"
 VIDEOS_DIR = STUDIO_DIR / "videos"
 for d in (INPUT_DIR, MUSIC_DIR, OUTPUT_DIR, TEMP_DIR, LOG_DIR,
@@ -44,7 +44,7 @@ print("Root:", ROOT)
 print("FFmpeg:", FFMPEG)
 
 # ============================================================
-# MUSIC LIBRARY SYNC (sama seperti kode lama)
+# MUSIC LIBRARY SYNC
 # ============================================================
 def sync_github_music():
     if not GITHUB_MUSIC_URL.strip():
@@ -78,14 +78,24 @@ copied, sync_msg = sync_github_music()
 print(sync_msg)
 
 # ============================================================
-# AGNES AI — IMAGE & VIDEO (Fase 1)
+# AGNES AI — IMAGE & VIDEO
 # ============================================================
 AGNES_API_KEY = os.environ.get("AGNES_API_KEY", "").strip()
 AGNES_BASE = "https://apihub.agnes-ai.com/v1"
-AGNES_IMAGE_MODEL = "agnes-image-2.5-flash"      # gratis, image-to-image
-AGNES_VIDEO_MODEL = "agnes-video-2.5-flash"      # gratis sementara, 720P, keyframe
+AGNES_IMAGE_MODEL = "agnes-image-2.5-flash"
+AGNES_VIDEO_MODEL = "agnes-video-2.5-flash"
 
 _STUDIO_LOG = LOG_DIR / "studio.log"
+
+_CANCEL_EVENTS = {}
+
+
+def get_cancel_event(session_id):
+    return _CANCEL_EVENTS.setdefault(session_id, threading.Event())
+
+
+def clear_cancel_event(session_id):
+    _CANCEL_EVENTS.pop(session_id, None)
 
 
 def studio_log(msg):
@@ -119,17 +129,12 @@ def reset_studio_log():
         pass
 
 
-# ---------- upload gambar sementara (untuk first_frame video) ----------
 def upload_to_temp_host(image_path):
-    """Upload gambar ke host sementara publik, return URL.
-    Mengikuti pendekatan CLI Agnes: litterbox → tmpfiles → uguu → x0.at.
-    """
     import requests
     p = Path(image_path)
     if not p.exists():
         raise RuntimeError(f"Image not found: {p}")
 
-    # 1. Litterbox (catbox sementara)
     try:
         with open(p, "rb") as f:
             r = requests.post(
@@ -143,7 +148,6 @@ def upload_to_temp_host(image_path):
     except Exception as e:
         studio_log(f"Litterbox upload gagal: {e}")
 
-    # 2. tmpfiles.org
     try:
         with open(p, "rb") as f:
             r = requests.post(
@@ -155,12 +159,10 @@ def upload_to_temp_host(image_path):
             data = r.json()
             url = data.get("data", {}).get("url", "")
             if url:
-                # tmpfiles memberikan halaman, ubah ke direct
                 return url.replace("tmpfiles.org/", "tmpfiles.org/dl/")
     except Exception as e:
         studio_log(f"tmpfiles upload gagal: {e}")
 
-    # 3. uguu.se
     try:
         with open(p, "rb") as f:
             r = requests.post(
@@ -176,7 +178,6 @@ def upload_to_temp_host(image_path):
     except Exception as e:
         studio_log(f"uguu upload gagal: {e}")
 
-    # 4. x0.at
     try:
         with open(p, "rb") as f:
             r = requests.post(
@@ -189,14 +190,17 @@ def upload_to_temp_host(image_path):
     except Exception as e:
         studio_log(f"x0.at upload gagal: {e}")
 
-    raise RuntimeError("Semua host sementara gagal. Coba lagi atau ganti jaringan.")
+    raise RuntimeError("Semua host sementara gagal.")
 
 
-# ---------- Agnes Image ----------
-def agnes_generate_image(prompt, reference_image_path=None, out_name="frame"):
+def agnes_generate_image(prompt, reference_image_path=None, out_name="frame",
+                         cancel_event=None):
     import requests
     if not AGNES_API_KEY:
         raise RuntimeError("AGNES_API_KEY belum diatur.")
+
+    if cancel_event and cancel_event.is_set():
+        raise RuntimeError("Dibatalkan oleh pengguna.")
 
     headers = {
         "Authorization": f"Bearer {AGNES_API_KEY}",
@@ -205,17 +209,24 @@ def agnes_generate_image(prompt, reference_image_path=None, out_name="frame"):
     payload = {
         "model": AGNES_IMAGE_MODEL,
         "prompt": prompt,
-        "size": "1K",                          # 或 "768x1024"
-        "extra_body": {
-            "response_format": "url",
-            "ratio": "9:16",                   # ✅ 移入 extra_body
-        },
+        "size": "1K",
+        "ratio": "9:16",
+        "extra_body": {"response_format": "url"},
     }
 
     if reference_image_path:
-        ref_url = upload_to_temp_host(reference_image_path)
-        payload["extra_body"]["image"] = [ref_url]   # ✅ 放在 extra_body 内
-        studio_log(f"Reference image uploaded: {ref_url[:60]}...")
+        p = Path(reference_image_path)
+        if not p.exists():
+            raise RuntimeError(f"Reference image not found: {p}")
+        suffix = p.suffix.lower().lstrip(".") or "png"
+        if suffix == "jpg":
+            suffix = "jpeg"
+        b64 = base64.b64encode(p.read_bytes()).decode("ascii")
+        payload["extra_body"]["image"] = [f"data:image/{suffix};base64,{b64}"]
+        studio_log(f"Reference image attached as Base64 ({len(b64)} chars).")
+
+    if cancel_event and cancel_event.is_set():
+        raise RuntimeError("Dibatalkan oleh pengguna.")
 
     studio_log(f"Agnes image request → {AGNES_IMAGE_MODEL}")
     r = requests.post(f"{AGNES_BASE}/images/generations",
@@ -230,20 +241,24 @@ def agnes_generate_image(prompt, reference_image_path=None, out_name="frame"):
     if not image_url:
         raise RuntimeError("Agnes image tidak mengembalikan URL.")
 
+    if cancel_event and cancel_event.is_set():
+        raise RuntimeError("Dibatalkan oleh pengguna.")
+
     out_path = FRAMES_DIR / f"{out_name}_{int(time.time())}.png"
     img_data = requests.get(image_url, timeout=120).content
     out_path.write_bytes(img_data)
     studio_log(f"Frame saved: {out_path.name} ({out_path.stat().st_size/1e6:.2f} MB)")
     return str(out_path)
 
-# ---------- Agnes Video ----------
-def agnes_generate_video(first_frame_path, prompt, out_name="video"):
-    """Image-to-video via Agnes, async polling.
-    Return: path file lokal.
-    """
+
+def agnes_generate_video(first_frame_path, prompt, out_name="video",
+                         max_queue_retries=30, cancel_event=None):
     import requests
     if not AGNES_API_KEY:
         raise RuntimeError("AGNES_API_KEY belum diatur.")
+
+    if cancel_event and cancel_event.is_set():
+        raise RuntimeError("Dibatalkan oleh pengguna.")
 
     frame_url = upload_to_temp_host(first_frame_path)
     studio_log(f"First frame uploaded: {frame_url[:60]}...")
@@ -263,10 +278,27 @@ def agnes_generate_video(first_frame_path, prompt, out_name="video"):
     }
 
     studio_log(f"Agnes video request → {AGNES_VIDEO_MODEL}")
-    r = requests.post(f"{AGNES_BASE}/videos",
-                      headers=headers, json=payload, timeout=60)
+    r = None
+    for queue_attempt in range(max_queue_retries):
+        if cancel_event and cancel_event.is_set():
+            raise RuntimeError("Dibatalkan oleh pengguna.")
+        r = requests.post(f"{AGNES_BASE}/videos",
+                          headers=headers, json=payload, timeout=60)
+        if r.status_code == 503 and "video_queue_full" in r.text:
+            wait = 30
+            studio_log(f"Antrean video penuh (503), percobaan {queue_attempt+1}/{max_queue_retries}, tunggu {wait}s...")
+            for _ in range(wait):
+                if cancel_event and cancel_event.is_set():
+                    raise RuntimeError("Dibatalkan oleh pengguna.")
+                time.sleep(1)
+            continue
+        break
+
+    if r is None:
+        raise RuntimeError("Agnes video: tidak ada respons.")
     if not r.ok:
         raise RuntimeError(f"Agnes video HTTP {r.status_code}: {r.text[:300]}")
+
     data = r.json()
     video_id = data.get("video_id") or data.get("id") or data.get("task_id")
     if not video_id:
@@ -277,7 +309,9 @@ def agnes_generate_video(first_frame_path, prompt, out_name="video"):
     poll_url = (f"https://apihub.agnes-ai.com/agnesapi"
                 f"?video_id={video_id}&model_name={AGNES_VIDEO_MODEL}")
     last_status = ""
-    for attempt in range(180):  # max 15 menit
+    for attempt in range(180):
+        if cancel_event and cancel_event.is_set():
+            raise RuntimeError("Dibatalkan oleh pengguna.")
         time.sleep(5)
         try:
             s = requests.get(poll_url, headers=headers, timeout=30).json()
@@ -294,6 +328,8 @@ def agnes_generate_video(first_frame_path, prompt, out_name="video"):
             video_url = s.get("url")
             if not video_url:
                 raise RuntimeError("Status completed tapi url kosong.")
+            if cancel_event and cancel_event.is_set():
+                raise RuntimeError("Dibatalkan oleh pengguna.")
             out_path = VIDEOS_DIR / f"{out_name}_{int(time.time())}.mp4"
             vid_data = requests.get(video_url, timeout=180).content
             out_path.write_bytes(vid_data)
@@ -306,9 +342,8 @@ def agnes_generate_video(first_frame_path, prompt, out_name="video"):
     raise RuntimeError("Agnes video timeout setelah 15 menit.")
 
 # ============================================================
-# PRODUCT ANALYSIS + PROMPT BUILDER + WORKFLOW ENGINE (Fase 1)
+# PRODUCT ANALYSIS + PROMPT BUILDER + WORKFLOW ENGINE
 # ============================================================
-
 WORKFLOW_STAGES = [
     ("Frame 1", "image", 1),
     ("Video 1", "video", 1),
@@ -322,15 +357,10 @@ WORKFLOW_STAGES = [
 
 
 def analyze_product_image(image_path):
-    """Gunakan agnes-2.5-flash untuk menganalisis gambar produk, menghasilkan Product Identity Profile.
-    Return: dict dengan field shape/colors/materials/texture/details, serta string deskripsi.
-    """
     import requests
     if not AGNES_API_KEY:
         raise RuntimeError("AGNES_API_KEY belum diatur.")
 
-    # Upload gambar sebagai data URI (vision chat mendukung data URI)
-    import base64
     p = Path(image_path)
     suffix = p.suffix.lower().lstrip(".") or "png"
     if suffix == "jpg":
@@ -368,14 +398,13 @@ def analyze_product_image(image_path):
         }],
         "temperature": 0.3,
     }
-    studio_log("Menganalisis produk via agnes-2.5-flash...")
+    studio_log("Menganalisis produk...")
     r = requests.post(f"{AGNES_BASE}/chat/completions",
                       headers=headers, json=payload, timeout=120)
     if not r.ok:
         raise RuntimeError(f"Analisis produk HTTP {r.status_code}: {r.text[:300]}")
     content = r.json()["choices"][0]["message"]["content"].strip()
 
-    # Ekstrak JSON (kadang dibungkus ```json)
     m = re.search(r"\{.*\}", content, re.DOTALL)
     if not m:
         raise RuntimeError(f"Respons analisis bukan JSON: {content[:300]}")
@@ -385,108 +414,77 @@ def analyze_product_image(image_path):
 
 
 def build_image_prompt(profile, frame_index):
-    """Bangun prompt gambar Agnes sesuai arahan visual master prompt."""
     desc = profile.get("description", "produk")
-    shape = profile.get("shape", "")
-    colors = profile.get("colors", "")
-    materials = profile.get("materials", "")
-    texture = profile.get("texture", "")
-    logos = profile.get("logos_text", "")
-    details = profile.get("details", "")
-    handling = profile.get("handling", "")
+    handling = profile.get("handling", "pegangan alami")
 
-    fidelity = (
-        f"Produk: {desc}. "
-        f"Pertahankan PERSIS: bentuk ({shape}), warna asli ({colors}), "
-        f"material ({materials}), tekstur ({texture}). "
+    preserve = (
+        f"Gunakan gambar referensi sebagai produk utama. "
+        f"Pertahankan PERSIS: bentuk, proporsi, warna, material, tekstur, logo, dan teks. "
+        f"Produk adalah {desc}. "
+        f"JANGAN mengubah, mendesain ulang, atau mengganti produk. "
     )
-    if logos.strip():
-        fidelity += f"Logo/teks yang terlihat: {logos} — jangan diubah. "
-    if details.strip():
-        fidelity += f"Ciri desain: {details}. "
-
-    return (
-        "Fotorealistis, produk showcase sudut pandang orang pertama (POV) perempuan. "
-        "Sudut kamera sekitar 30 derajat ke bawah, jarak sekitar 40 cm dari produk. "
-        f"Produk dipegang secara alami di depan pandangan. {fidelity}"
-        f"Cara memegang: {handling}. "
-        "Tangan: tampilan feminin, anatomi alami, jumlah jari benar, jari ramping, "
-        "kulit bersih cerah, kuku oval pendek-sedang dengan cat kuku dusty pink mengilap, "
-        "tanpa nail art. Hanya tampilkan tangan, pergelangan sangat sedikit, dan produk. "
-        "JANGAN tampilkan wajah, kepala, rambut, badan, pakaian, atau kaki. "
-        "Latar: taman tropis Indonesia yang tenang, rumput hijau, pohon besar, "
-        "cahaya alami, bangku kosong, jalur setapak. Tanpa orang, hewan, atau kendaraan. "
-        f"Variasi halus untuk frame {frame_index} dari 4: hanya pada detail latar belakang. "
-        "Komposisi portrait 9:16. Kualitas fotorealistis tinggi."
+    change = (
+        f"Letakkan produk ini di tangan perempuan dengan {handling}, "
+        "POV orang pertama, sudut kamera 30 derajat ke bawah, jarak 40 cm. "
+        "Tangan feminin, anatomi normal, jumlah jari benar. "
+        "Latar: taman tropis Indonesia, rumput hijau, pohon besar, cahaya alami, "
+        "tanpa orang, hewan, atau kendaraan. "
+        f"Variasi halus hanya pada detail latar untuk frame {frame_index}. "
+        "Komposisi portrait 9:16, fotorealistis."
     )
+    return preserve + change
 
 
 def build_video_prompt():
-    """Prompt gerak video sesuai master prompt."""
     return (
-        "Animasikan gambar pertama yang diberikan menjadi video product showcase fotorealistis. "
-        "Tangan perempuan dengan lembut menggerakkan produk sedikit ke satu sisi, "
-        "lalu kembali secara alami ke posisi semula. Tangan dan produk bergerak "
-        "sebagai satu kesatuan. Pegangan dan posisi jari tetap stabil. "
-        "Produk tetap terlihat jelas dan mempertahankan tampilan aslinya persis. "
-        "Kamera tetap diam. Hanya gerakan halus alami di latar taman tropis. "
-        "Gerakan sederhana, mulus, realistis, dan natural secara fisik. "
+        "Animasikan gambar pertama menjadi video product showcase fotorealistis. "
+        "Tangan perempuan menggerakkan produk sedikit ke satu sisi, lalu kembali. "
+        "Tangan dan produk bergerak sebagai satu kesatuan. "
+        "Pegangan dan posisi jari tetap stabil. "
+        "Produk tetap terlihat jelas dan mempertahankan tampilan aslinya. "
+        "Kamera diam. Hanya gerakan halus di latar taman tropis. "
         "Jangan mengubah anatomi tangan, jumlah jari, atau bentuk produk."
     )
 
 
-# ============================================================
-# WORKFLOW STATE HELPERS
-# ============================================================
 def fresh_workflow_state():
     return {
-        "step": 0,                 # 0..7, index ke WORKFLOW_STAGES
-        "approved_frames": [],     # list 4 path gambar yang disetujui
-        "approved_videos": [],     # list 4 path video yang disetujui
-        "current_output": None,    # path output aktif (belum disetujui)
-        "current_type": None,      # "image" / "video"
-        "current_index": 0,        # 1..4
-        "profile": None,           # Product Identity Profile
-        "status": "idle",          # idle / generating / awaiting_approval / done
+        "step": 0,
+        "approved_frames": [],
+        "approved_videos": [],
+        "current_output": None,
+        "current_type": None,
+        "current_index": 0,
+        "profile": None,
+        "status": "idle",
     }
 
 
-def stage_label(step):
-    if step >= len(WORKFLOW_STAGES):
-        return "Selesai"
-    name, kind, idx = WORKFLOW_STAGES[step]
-    return f"{name} ({'Gambar' if kind == 'image' else 'Video'})"
-
-
 def workflow_progress_text(state):
-    """Teks progres untuk kolom kiri."""
-    lines = ["**Progres Workflow**", ""]
-    if state.get("profile"):
-        lines.append("✅ Analisis Produk")
-    else:
-        lines.append("⬜ Analisis Produk")
+    state = state or fresh_workflow_state()
+    rows = []
+    analyze_done = bool(state.get("profile"))
+    rows.append(("✓" if analyze_done else "○") + "  Analyze")
+
+    step = state.get("step", 0)
     for i, (name, kind, idx) in enumerate(WORKFLOW_STAGES):
-        if i < state["step"]:
-            lines.append(f"✅ {name}")
-        elif i == state["step"]:
-            lines.append(f"🔄 {name} — aktif")
+        if i < step:
+            rows.append(f"✓  {name}")
+        elif i == step:
+            rows.append(f"▶  {name}   ← aktif")
         else:
-            lines.append(f"⬜ {name}")
-    return "\n".join(lines)
+            rows.append(f"○  {name}")
+
+    return "  \n".join(rows)
 
 
 def validate_agnes_config():
     if not AGNES_API_KEY:
-        return (
-            "⚠️ **AGNES_API_KEY belum diatur.**\n\n"
-            "Set environment variable:\n"
-            "```\nexport AGNES_API_KEY='sk-...'\n```\n"
-            "Dapatkan key gratis di https://agnes-ai.com"
-        )
+        return "AGNES_API_KEY belum diatur. Set environment variable sebelum menjalankan."
     return ""
 
 # ============================================================
-# FUNGSI LAMA YANG DIPERLUKAN TAB 2 (disederhanakan, logika sama)
+# FUNGSI TAB 2
 # ============================================================
 import numpy as np
 import librosa
@@ -799,7 +797,7 @@ def sanitize_filename(name):
 def update_render_button(filename):
     return gr.update(interactive=bool(str(filename or '').strip()))
 
-# Gemini caption — sama seperti kode lama, disingkat bagian log-nya
+
 def generate_ai_caption(product_link, product_title, shop_name,
                         prompt_reference="", lines=None):
     raw_keys = os.environ.get("GEMINI_API_KEYS", "").strip()
@@ -876,6 +874,7 @@ def generate_ai_caption(product_link, product_title, shop_name,
         raise last_error or RuntimeError("Semua key Gemini gagal.")
     except Exception as e:
         raise RuntimeError(f"Gagal caption AI: {type(e).__name__}: {e}") from e
+
 
 def build_tiktok_url(output_path, caption):
     p = Path(output_path)
@@ -968,12 +967,12 @@ def render_video(videos, music_path, output_name, caption, duration_choice="21s"
         if pr.returncode != 0 or not preview_proxy.exists():
             preview_proxy = out
 
-        log(lines, f"✅ DONE → {out.name}")
+        log(lines, f"DONE → {out.name}")
         save_log(lines)
         return str(preview_proxy), str(out), tiktok_url
 
     except Exception as e:
-        log(lines, f"❌ ERROR: {e}")
+        log(lines, f"ERROR: {e}")
         save_log(lines)
         return None, None, None
 
@@ -1001,7 +1000,7 @@ def generate_render(videos, music_path, output_name, caption_text, duration_choi
                 make_clickable_tiktok_link(tiktok_url) if tiktok_url else "",
                 caption_final)
     except Exception as e:
-        log(lines, f"❌ GENERATE ERROR: {type(e).__name__}: {e}")
+        log(lines, f"GENERATE ERROR: {type(e).__name__}: {e}")
         save_log(lines)
         return read_live_log(), None, None, "", ""
 
@@ -1019,206 +1018,201 @@ initial_music_value = initial_music[0][1] if initial_music else None
 with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
 
     with gr.Tab("1. Product Studio"):
-        gr.Markdown(
-            "## AI Product Commercial Studio\n"
-            "Upload **1 foto produk** → Analisis → 4 Frame + 4 Video, "
-            "setiap tahap perlu **Approve & Continue**."
-        )
         agnes_warn = gr.Markdown(validate_agnes_config())
 
         with gr.Row(equal_height=False):
-            # ---------- KOLOM KIRI ----------
-            with gr.Column(scale=1, min_width=280):
-                gr.Markdown("### Produk & Workflow")
-                product_image = gr.Image(
-                    label="Upload Foto Produk", type="filepath",
-                    height=220,
-                )
-                analyze_btn = gr.Button("🔍 Analyze Product", variant="secondary")
-                analysis_status = gr.Textbox(
-                    label="Status Analisis", lines=4, interactive=False,
-                )
-                workflow_status = gr.Markdown(
-                    workflow_progress_text(fresh_workflow_state()),
-                )
+            with gr.Column(scale=1, min_width=260):
+                gr.Markdown("Product")
+                product_image = gr.Image(label="", type="filepath", height=180)
+                analyze_btn = gr.Button("Analyze Product", variant="secondary")
+                workflow_status = gr.Markdown(workflow_progress_text(fresh_workflow_state()))
 
-            # ---------- KOLOM TENGAH ----------
-            with gr.Column(scale=2, min_width=420):
-                gr.Markdown("### Preview")
-                current_stage = gr.Textbox(
-                    label="Tahap Aktif", value="Belum mulai",
-                    interactive=False, lines=1,
+            with gr.Column(scale=2, min_width=400):
+                gr.Markdown("Preview")
+                current_stage = gr.Textbox(label="Tahap", value="Belum mulai",
+                                           interactive=False, lines=1)
+                current_preview = gr.Image(label="", visible=True, height=260)
+                current_video = gr.Video(label="", visible=False, height=260)
+
+            with gr.Column(scale=1, min_width=280):
+                gr.Markdown("Generator")
+                gen_status = gr.Textbox(label="Status", lines=3, interactive=False)
+                generate_btn = gr.Button("Generate", variant="primary", size="lg")
+                regenerate_btn = gr.Button("Regenerate", variant="secondary", visible=False)
+                cancel_btn = gr.Button("Cancel", variant="stop", visible=False)
+                approve_btn = gr.Button("Approve & Continue", variant="primary", visible=False)
+                with gr.Row():
+                    reverse_btn = gr.Button("Reverse", variant="secondary", size="sm")
+                    reset_btn = gr.Button("Reset", variant="secondary", size="sm")
+                send_to_editor_btn = gr.Button("Kirim ke Video Editor",
+                                               variant="secondary", visible=False)
+
+        # ---------- GALERI FRAMES & VIDEOS ----------
+        with gr.Row(equal_height=False):
+            with gr.Column(scale=1):
+                gr.Markdown("Frames (4)")
+                frames_gallery = gr.Gallery(
+                    label="", columns=4, rows=1, height=200,
+                    object_fit="cover", interactive=False,
                 )
-                current_preview = gr.Image(
-                    label="Preview Gambar", visible=True, height=380,
-                )
-                current_video = gr.Video(
-                    label="Preview Video", visible=False, height=380,
-                )
-                gr.Markdown("**Hasil Sebelumnya:**")
-                approved_gallery = gr.Gallery(
-                    label="", columns=4, height=120,
+            with gr.Column(scale=1):
+                gr.Markdown("Videos (4)")
+                videos_gallery = gr.Gallery(
+                    label="", columns=4, rows=1, height=200,
                     object_fit="cover", interactive=False,
                 )
 
-            # ---------- KOLOM KANAN ----------
-            with gr.Column(scale=1, min_width=300):
-                gr.Markdown("### Generator")
-                gen_section = gr.Markdown("**Nano Banana 2 — Image Generator** (Agnes)")
-                gen_status = gr.Textbox(
-                    label="Status Generator", lines=3, interactive=False,
-                )
-                generate_btn = gr.Button(
-                    "⚡ Generate", variant="primary", size="lg",
-                )
-                regenerate_btn = gr.Button(
-                    "🔄 Regenerate", variant="secondary", visible=False,
-                )
-                approve_btn = gr.Button(
-                    "✅ Approve & Continue", variant="primary", visible=False,
-                )
-                send_to_editor_btn = gr.Button(
-                    "📤 Kirim 4 Video ke Video Editor",
-                    variant="secondary", visible=False,
-                )
-                studio_logbox = gr.Textbox(
-                    label="Log Studio", lines=8, interactive=False,
-                )
+        # ---------- LOG DI BAWAH ----------
+        with gr.Row(equal_height=False):
+            with gr.Column(scale=1):
+                gr.Markdown("Log")
+                studio_logbox = gr.Textbox(label="", lines=8, interactive=False)
                 studio_timer = gr.Timer(value=2.0)
                 studio_timer.tick(read_studio_log, inputs=[], outputs=studio_logbox)
 
-        # State
         wf_state = gr.State(fresh_workflow_state())
+        session_id = gr.State("")
 
-        # ---------- HANDLER: ANALYZE ----------
         def on_analyze(image_path, state):
             state = dict(state or fresh_workflow_state())
             if not image_path:
-                return state, "❌ Upload gambar dulu.", workflow_progress_text(state), "", gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+                return (state, "Upload gambar dulu.", workflow_progress_text(state), "",
+                        gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update())
             if not AGNES_API_KEY:
-                return state, "❌ AGNES_API_KEY belum diatur.", workflow_progress_text(state), "", gr.update(), gr.update(), gr.update(), gr.update(), gr.update()
+                return (state, "AGNES_API_KEY belum diatur.", workflow_progress_text(state), "",
+                        gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update())
             try:
                 reset_studio_log()
                 profile = analyze_product_image(image_path)
                 state["profile"] = profile
                 state["status"] = "analyzed"
-                return (
-                    state,
-                    f"✅ Profil produk siap.\n{profile.get('description', '')}",
-                    workflow_progress_text(state),
-                    f"Profil: {profile.get('description', '')[:200]}",
-                    gr.update(visible=False), gr.update(visible=False),
-                    gr.update(visible=False), gr.update(visible=False),
-                    gr.update(visible=True),
-                )
+                return (state,
+                        f"Profil siap. {profile.get('description', '')}",
+                        workflow_progress_text(state),
+                        f"Profil: {profile.get('description', '')[:200]}",
+                        gr.update(visible=False), gr.update(visible=False),
+                        gr.update(visible=False), gr.update(visible=False),
+                        gr.update(visible=False), gr.update(visible=True))
             except Exception as e:
-                return (
-                    state, f"❌ Analisis gagal: {e}",
-                    workflow_progress_text(state), str(e),
-                    gr.update(), gr.update(), gr.update(), gr.update(), gr.update(),
-                )
+                return (state, f"Analisis gagal: {e}", workflow_progress_text(state), str(e),
+                        gr.update(), gr.update(), gr.update(), gr.update(), gr.update(), gr.update())
 
         analyze_btn.click(
             on_analyze, inputs=[product_image, wf_state],
-            outputs=[wf_state, analysis_status, workflow_status, gen_status,
-                     current_video, regenerate_btn, approve_btn,
+            outputs=[wf_state, gen_status, workflow_status, studio_logbox,
+                     current_video, regenerate_btn, approve_btn, cancel_btn,
                      send_to_editor_btn, generate_btn],
         )
 
-        # ---------- HANDLER: GENERATE / REGENERATE ----------
-        def on_generate(state, force_regenerate=False):
+        def on_generate(state, product_image, sid, force_regenerate=False):
             state = dict(state or fresh_workflow_state())
             if not state.get("profile"):
-                return (state, "❌ Lakukan Analyze Product dulu.",
-                        workflow_progress_text(state), None, None,
+                return (state, "Lakukan Analyze Product dulu.", workflow_progress_text(state),
+                        None, None, gr.update(visible=False), gr.update(visible=False),
                         gr.update(visible=False), gr.update(visible=False),
-                        gr.update(visible=False), gr.update(visible=True),
-                        gr.update(visible=False))
+                        gr.update(visible=True), gr.update(visible=False))
             step = state["step"]
             if step >= len(WORKFLOW_STAGES):
-                return (state, "✅ Semua tahap selesai.",
-                        workflow_progress_text(state), None, None,
-                        gr.update(visible=False), gr.update(visible=False),
-                        gr.update(visible=True), gr.update(visible=False),
-                        gr.update(visible=False))
+                return (state, "Semua tahap selesai.", workflow_progress_text(state),
+                        None, None, gr.update(visible=False), gr.update(visible=False),
+                        gr.update(visible=False), gr.update(visible=True),
+                        gr.update(visible=False), gr.update(visible=False))
             name, kind, idx = WORKFLOW_STAGES[step]
             state["status"] = "generating"
+
+            cancel_event = get_cancel_event(sid or "default")
+            cancel_event.clear()
+
             try:
                 if kind == "image":
                     prompt = build_image_prompt(state["profile"], idx)
-                    ref = state["approved_frames"][0] if state["approved_frames"] else None
+                    ref = product_image if product_image else None
                     out = agnes_generate_image(prompt, reference_image_path=ref,
-                                               out_name=f"frame{idx}")
+                                               out_name=f"frame{idx}",
+                                               cancel_event=cancel_event)
                     state["current_type"] = "image"
                     state["current_output"] = out
                     state["current_index"] = idx
-                    return (
-                        state, f"✅ {name} siap. Review lalu Approve atau Regenerate.",
-                        workflow_progress_text(state), out, None,
-                        gr.update(visible=True), gr.update(visible=True),
-                        gr.update(visible=False), gr.update(visible=False),
-                        gr.update(visible=False),
-                    )
+                    return (state, f"{name} siap. Review lalu Approve atau Regenerate.",
+                            workflow_progress_text(state), out, None,
+                            gr.update(visible=True), gr.update(visible=True),
+                            gr.update(visible=True), gr.update(visible=False),
+                            gr.update(visible=False), gr.update(visible=False))
                 else:
                     if len(state["approved_frames"]) < idx:
                         raise RuntimeError(f"Frame {idx} belum disetujui.")
                     first = state["approved_frames"][idx - 1]
                     prompt = build_video_prompt()
-                    out = agnes_generate_video(first, prompt, out_name=f"video{idx}")
+                    out = agnes_generate_video(first, prompt, out_name=f"video{idx}",
+                                               cancel_event=cancel_event)
                     state["current_type"] = "video"
                     state["current_output"] = out
                     state["current_index"] = idx
-                    return (
-                        state, f"✅ {name} siap. Review lalu Approve atau Regenerate.",
-                        workflow_progress_text(state), None, out,
-                        gr.update(visible=True), gr.update(visible=True),
-                        gr.update(visible=False), gr.update(visible=False),
-                        gr.update(visible=False),
-                    )
+                    return (state, f"{name} siap. Review lalu Approve atau Regenerate.",
+                            workflow_progress_text(state), None, out,
+                            gr.update(visible=True), gr.update(visible=True),
+                            gr.update(visible=True), gr.update(visible=False),
+                            gr.update(visible=False), gr.update(visible=False))
             except Exception as e:
                 state["status"] = "error"
-                return (
-                    state, f"❌ Generate gagal: {e}",
-                    workflow_progress_text(state), None, None,
+                return (state, f"Generate gagal: {e}", workflow_progress_text(state),
+                        None, None, gr.update(visible=False), gr.update(visible=False),
+                        gr.update(visible=False), gr.update(visible=False),
+                        gr.update(visible=True), gr.update(visible=False))
+
+        gen_evt = generate_btn.click(
+            lambda s, img, sid: on_generate(s, img, sid, False),
+            inputs=[wf_state, product_image, session_id],
+            outputs=[wf_state, gen_status, workflow_status, current_preview, current_video,
+                     regenerate_btn, approve_btn, cancel_btn, send_to_editor_btn,
+                     generate_btn, current_stage],
+        )
+        regen_evt = regenerate_btn.click(
+            lambda s, img, sid: on_generate(s, img, sid, True),
+            inputs=[wf_state, product_image, session_id],
+            outputs=[wf_state, gen_status, workflow_status, current_preview, current_video,
+                     regenerate_btn, approve_btn, cancel_btn, send_to_editor_btn,
+                     generate_btn, current_stage],
+        )
+
+        def on_cancel(sid, state):
+            evt = get_cancel_event(sid or "default")
+            evt.set()
+            state = dict(state or fresh_workflow_state())
+            state["status"] = "idle"
+            return (state, "Dibatalkan oleh pengguna.",
                     gr.update(visible=False), gr.update(visible=False),
-                    gr.update(visible=False), gr.update(visible=True),
-                    gr.update(visible=False),
-                )
+                    gr.update(visible=False), gr.update(visible=True))
 
-        generate_btn.click(
-            lambda s: on_generate(s, False),
-            inputs=[wf_state],
-            outputs=[wf_state, gen_status, workflow_status,
-                     current_preview, current_video,
-                     regenerate_btn, approve_btn,
-                     send_to_editor_btn, generate_btn, current_stage],
-        )
-        regenerate_btn.click(
-            lambda s: on_generate(s, True),
-            inputs=[wf_state],
-            outputs=[wf_state, gen_status, workflow_status,
-                     current_preview, current_video,
-                     regenerate_btn, approve_btn,
-                     send_to_editor_btn, generate_btn, current_stage],
+        cancel_btn.click(
+            on_cancel, inputs=[session_id, wf_state],
+            outputs=[wf_state, gen_status, cancel_btn, regenerate_btn,
+                     approve_btn, generate_btn],
+            cancels=[gen_evt, regen_evt],
         )
 
-        # ---------- HANDLER: APPROVE ----------
         def on_approve(state):
             state = dict(state or fresh_workflow_state())
             step = state["step"]
             if step >= len(WORKFLOW_STAGES):
-                return (state, "✅ Selesai.", workflow_progress_text(state),
+                return (state, "Selesai.", workflow_progress_text(state),
                         gr.update(visible=False), gr.update(visible=False),
-                        gr.update(visible=False), gr.update(visible=True),
-                        None, None, None, [], gr.update(visible=False))
+                        gr.update(visible=False), gr.update(visible=False),
+                        gr.update(visible=True), None, None, None,
+                        [f for f in state["approved_frames"] if f],
+                        [v for v in state["approved_videos"] if v],
+                        gr.update(visible=False))
             name, kind, idx = WORKFLOW_STAGES[step]
             out = state.get("current_output")
             if not out or not Path(out).exists():
-                return (state, "❌ Tidak ada output untuk disetujui.",
+                return (state, "Tidak ada output untuk disetujui.",
                         workflow_progress_text(state),
                         gr.update(visible=False), gr.update(visible=False),
-                        gr.update(visible=False), gr.update(visible=True),
-                        None, None, None, [], gr.update(visible=False))
+                        gr.update(visible=False), gr.update(visible=False),
+                        gr.update(visible=True), None, None, None,
+                        [f for f in state["approved_frames"] if f],
+                        [v for v in state["approved_videos"] if v],
+                        gr.update(visible=False))
             if kind == "image":
                 frames = list(state["approved_frames"])
                 while len(frames) < idx:
@@ -1236,38 +1230,67 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
             state["current_output"] = None
             state["current_type"] = None
             state["status"] = "awaiting_approval"
-
-            gallery_items = [f for f in state["approved_frames"] if f] + \
-                            [v for v in state["approved_videos"] if v]
-
             all_done = state["step"] >= len(WORKFLOW_STAGES)
+            next_name = WORKFLOW_STAGES[state["step"]][0] if not all_done else "Selesai"
+
             return (
                 state,
-                "🎉 Semua tahap selesai! Klik 'Kirim 4 Video ke Video Editor'."
-                if all_done else f"✅ {name} disetujui. Lanjut ke tahap berikutnya.",
+                ("Semua tahap selesai. Klik Kirim ke Video Editor."
+                 if all_done
+                 else f"{name} disetujui. Klik Generate untuk {next_name}."),
                 workflow_progress_text(state),
-                gr.update(visible=False), gr.update(visible=False),
-                gr.update(visible=all_done), gr.update(visible=not all_done),
-                None if not all_done else state["approved_videos"][-1] if state["approved_videos"] else None,
-                None, None, gallery_items,
+                gr.update(visible=False),
+                gr.update(visible=False),
+                gr.update(visible=False),
+                gr.update(visible=all_done),
+                gr.update(visible=not all_done),
+                None, None,
+                next_name,
+                [f for f in state["approved_frames"] if f],
+                [v for v in state["approved_videos"] if v],
                 gr.update(visible=False),
             )
 
         approve_btn.click(
             on_approve, inputs=[wf_state],
             outputs=[wf_state, gen_status, workflow_status,
-                     regenerate_btn, approve_btn, send_to_editor_btn,
+                     regenerate_btn, approve_btn, cancel_btn, send_to_editor_btn,
                      generate_btn, current_preview, current_video,
-                     current_stage, approved_gallery, studio_logbox],
+                     current_stage, frames_gallery, videos_gallery,
+                     studio_logbox],
         )
 
-        # ---------- HANDLER: KIRIM KE VIDEO EDITOR (placeholder, diisi di Bagian 4) ----------
-        # Binding aktual memerlukan referensi komponen tab 2,
-        # sehingga akan ditulis di Bagian 4 setelah tab 2 didefinisikan.
-        send_payload = gr.State(None)
+        def on_reverse(state):
+            state = dict(state or fresh_workflow_state())
+            state["approved_frames"] = list(reversed(state["approved_frames"]))
+            state["approved_videos"] = list(reversed(state["approved_videos"]))
+            return (state, "Urutan dibalik.", workflow_progress_text(state),
+                    [f for f in state["approved_frames"] if f],
+                    [v for v in state["approved_videos"] if v])
+
+        reverse_btn.click(
+            on_reverse, inputs=[wf_state],
+            outputs=[wf_state, gen_status, workflow_status,
+                     frames_gallery, videos_gallery],
+        )
+
+        def on_reset(state, sid):
+            clear_cancel_event(sid or "default")
+            new_state = fresh_workflow_state()
+            return (new_state, "Workflow direset.", workflow_progress_text(new_state),
+                    None, None, gr.update(visible=False), gr.update(visible=False),
+                    gr.update(visible=False), gr.update(visible=True), [], [])
+
+        reset_btn.click(
+            on_reset, inputs=[wf_state, session_id],
+            outputs=[wf_state, gen_status, workflow_status,
+                     current_preview, current_video,
+                     regenerate_btn, approve_btn, cancel_btn,
+                     generate_btn, frames_gallery, videos_gallery],
+        )
 
     # ============================================================
-    # TAB 2: VIDEO EDITOR (alur lama, UI identik)
+    # TAB 2: VIDEO EDITOR
     # ============================================================
     with gr.Tab("2. Video Editor"):
         with gr.Row(elem_id="mainrow", equal_height=False):
@@ -1276,19 +1299,15 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
                 videos = gr.File(label="", file_count="multiple",
                                  file_types=["video"], type="filepath", height=200)
                 with gr.Row(elem_id="video-actions"):
-                    add_video = gr.UploadButton(
-                        "＋ Add", file_count="multiple",
-                        file_types=["video"], size="sm",
-                    )
+                    add_video = gr.UploadButton("＋ Add", file_count="multiple",
+                                                file_types=["video"], size="sm")
                     clear_video = gr.Button("✕ Clear", size="sm")
 
             with gr.Column(scale=1, min_width=240, elem_id="musicpanel"):
                 gr.Markdown("Music", elem_classes=["ave-col-title"])
-                music = gr.Dropdown(label="", choices=initial_music,
-                                    allow_custom_value=False)
-                music_player = gr.Audio(label="", type="filepath",
-                                        interactive=False, autoplay=False,
-                                        value=initial_music_value)
+                music = gr.Dropdown(label="", choices=initial_music, allow_custom_value=False)
+                music_player = gr.Audio(label="", type="filepath", interactive=False,
+                                        autoplay=False, value=initial_music_value)
                 music_upload = gr.File(label="", file_count="multiple",
                                        file_types=["audio"], type="filepath", height=80)
                 add_music = gr.Button("＋ Add", size="sm")
@@ -1296,25 +1315,15 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
             with gr.Column(scale=1, min_width=240, elem_id="contentpanel"):
                 gr.Markdown("Content", elem_classes=["ave-col-title"])
                 with gr.Row(elem_id="content-actions"):
-                    duration_choice = gr.Radio(
-                        choices=["11s", "21s"], value="21s",
-                        label="", container=False,
-                    )
-                    action_btn = gr.Button(
-                        "Generate", size="sm", variant="secondary",
-                        interactive=False, scale=8,
-                    )
-                tiktok_link = gr.Markdown(
-                    "Post TikTok will be available after the video is ready."
-                )
-                output_name = gr.Textbox(label="",
-                                         placeholder="File name / Product ID",
-                                         lines=1)
-                caption = gr.Textbox(
-                    label="Caption",
-                    placeholder="Caption akan dibuat otomatis oleh AI...",
-                    lines=5, interactive=True,
-                )
+                    duration_choice = gr.Radio(choices=["11s", "21s"], value="21s",
+                                               label="", container=False)
+                    action_btn = gr.Button("Generate", size="sm", variant="secondary",
+                                           interactive=False, scale=8)
+                tiktok_link = gr.Markdown("Post TikTok will be available after the video is ready.")
+                output_name = gr.Textbox(label="", placeholder="File name / Product ID", lines=1)
+                caption = gr.Textbox(label="Caption",
+                                     placeholder="Caption akan dibuat otomatis oleh AI...",
+                                     lines=5, interactive=True)
 
             with gr.Column(scale=1, min_width=280, elem_id="preview"):
                 gr.Markdown("Output", elem_classes=["ave-col-title"])
@@ -1324,16 +1333,13 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
         with gr.Row(elem_id="outputrow", equal_height=False):
             with gr.Column(scale=1, min_width=500, elem_id="promptpanel"):
                 gr.Markdown("Prompt (referensi)", elem_classes=["ave-col-title"])
-                prompt_box = gr.Textbox(
-                    label="",
-                    placeholder="Isi deskripsi produk. AI memakai ini sebagai sumber caption.",
-                    lines=9,
-                )
+                prompt_box = gr.Textbox(label="",
+                                        placeholder="Isi deskripsi produk. AI memakai ini sebagai sumber caption.",
+                                        lines=9)
             with gr.Column(scale=1, min_width=360, elem_id="logpanel"):
                 gr.Markdown("Log", elem_classes=["ave-col-title"])
                 log_timer = gr.Timer(value=1.0)
-                logbox = gr.Textbox(label="", lines=16, max_lines=30,
-                                    interactive=False)
+                logbox = gr.Textbox(label="", lines=16, max_lines=30, interactive=False)
                 log_timer.tick(read_live_log, inputs=[], outputs=logbox)
 
         selected_product_id = gr.Textbox(visible=False)
@@ -1341,34 +1347,27 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
         product_link = gr.Textbox(visible=False)
         shop_name = gr.Textbox(visible=False)
 
-        # Event binding tab 2 (sama seperti kode lama)
-        output_name.input(update_render_button, inputs=output_name,
-                          outputs=action_btn)
-        output_name.change(update_render_button, inputs=output_name,
-                           outputs=action_btn)
-        add_video.upload(combine_video_files, inputs=[videos, add_video],
-                         outputs=videos)
+        output_name.input(update_render_button, inputs=output_name, outputs=action_btn)
+        output_name.change(update_render_button, inputs=output_name, outputs=action_btn)
+        add_video.upload(combine_video_files, inputs=[videos, add_video], outputs=videos)
         clear_video.click(clear_video_files, inputs=[], outputs=videos)
         add_music.click(add_uploaded_music, inputs=[music_upload],
                         outputs=[music, music_upload, music_player])
         music.change(select_music, inputs=music, outputs=music_player)
-        action_btn.click(
-            fn=clear_caption_and_log, inputs=[], outputs=[caption, logbox],
-        ).then(
+        action_btn.click(fn=clear_caption_and_log, inputs=[], outputs=[caption, logbox]).then(
             fn=generate_render,
             inputs=[videos, music, output_name, caption, duration_choice,
                     prompt_box, product_link, product_title, shop_name],
             outputs=[logbox, preview, download, tiktok_link, caption],
         )
 
-    # ---------- BINDING KIRIM KE VIDEO EDITOR (butuh komponen tab 2) ----------
     def on_send_to_editor(state):
         state = dict(state or fresh_workflow_state())
         vids = [v for v in state.get("approved_videos", []) if v and Path(v).exists()]
         if len(vids) < 4:
-            return (state, f"❌ Butuh 4 video disetujui, saat ini {len(vids)}.",
+            return (state, f"Butuh 4 video disetujui, saat ini {len(vids)}.",
                     gr.update(), "")
-        return (state, f"✅ {len(vids)} video dikirim ke Video Editor.",
+        return (state, f"{len(vids)} video dikirim ke Video Editor.",
                 gr.update(value=vids), "")
 
     send_to_editor_btn.click(
@@ -1377,7 +1376,7 @@ with gr.Blocks(title="AI Product Commercial Studio + Video Editor") as app:
     )
 
 # ============================================================
-# LAUNCH — Cloudflare Tunnel
+# LAUNCH
 # ============================================================
 PORT = 7860
 CLOUDFLARED_BIN = os.path.expanduser("~/cloudflared")
@@ -1387,15 +1386,12 @@ def _kill_port_7860():
     killed = False
     if shutil.which("lsof"):
         try:
-            r = subprocess.run(
-                ["lsof", "-ti", f":{PORT}"],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-            )
-            for pid in [int(x) for x in r.stdout.strip().split()
-                        if x.strip().isdigit()]:
+            r = subprocess.run(["lsof", "-ti", f":{PORT}"],
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            for pid in [int(x) for x in r.stdout.strip().split() if x.strip().isdigit()]:
                 try:
                     os.kill(pid, signal.SIGKILL)
-                    print(f"🔪 Killed PID {pid} (lsof)")
+                    print(f"Killed PID {pid} (lsof)")
                     killed = True
                 except Exception:
                     pass
@@ -1403,11 +1399,9 @@ def _kill_port_7860():
             pass
     if not killed and shutil.which("fuser"):
         try:
-            subprocess.run(
-                ["fuser", "-k", f"{PORT}/tcp"],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=5,
-            )
-            print("🔪 Killed via fuser")
+            subprocess.run(["fuser", "-k", f"{PORT}/tcp"],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=5)
+            print("Killed via fuser")
             killed = True
         except Exception:
             pass
@@ -1418,7 +1412,6 @@ def _kill_port_7860():
 if __name__ == "__main__":
     _kill_port_7860()
 
-    # Kill cloudflared lama
     if "_ave_tunnel_proc" in globals():
         try:
             globals()["_ave_tunnel_proc"].terminate()
@@ -1426,17 +1419,14 @@ if __name__ == "__main__":
         except Exception:
             pass
     try:
-        subprocess.run(
-            ["pkill", "-f", "cloudflared"],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=5,
-        )
+        subprocess.run(["pkill", "-f", "cloudflared"],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=5)
         time.sleep(1)
     except Exception:
         pass
 
-    # Install cloudflared
     if not os.path.exists(CLOUDFLARED_BIN):
-        print("📥 Install cloudflared ke ~/cloudflared...")
+        print("Install cloudflared ke ~/cloudflared...")
         subprocess.run(
             "wget -q "
             "https://github.com/cloudflare/cloudflared/releases/latest/download/"
@@ -1444,37 +1434,29 @@ if __name__ == "__main__":
             f"&& chmod +x {CLOUDFLARED_BIN}",
             shell=True, check=True,
         )
-        print(f"✅ cloudflared terinstall: {CLOUDFLARED_BIN}")
+        print(f"cloudflared terinstall: {CLOUDFLARED_BIN}")
     else:
-        print(f"✅ cloudflared sudah ada: {CLOUDFLARED_BIN}")
+        print(f"cloudflared sudah ada: {CLOUDFLARED_BIN}")
 
-    # Peringatan konfigurasi (tidak fatal)
     if not AGNES_API_KEY:
-        print("⚠️  AGNES_API_KEY belum diatur — tab Product Studio tidak bisa generate.")
+        print("AGNES_API_KEY belum diatur — Product Studio tidak bisa generate.")
     if not (os.environ.get("GEMINI_API_KEYS") or os.environ.get("GEMINI_API_KEY")):
-        print("⚠️  GEMINI_API_KEY belum diatur — caption AI tab Video Editor tidak bisa generate.")
+        print("GEMINI_API_KEY belum diatur — caption AI tidak bisa generate.")
 
-    print(f"▶ Launch Gradio di port {PORT}...")
+    print(f"Launch Gradio di port {PORT}...")
     try:
-        app.launch(
-            server_name="0.0.0.0",
-            server_port=PORT,
-            share=False,
-            debug=False,
-            quiet=True,
-            prevent_thread_lock=True,
-            theme=gr.themes.Base(),
-        )
-        print("✅ Gradio jalan.")
+        app.queue(default_concurrency_limit=1)
+        app.launch(server_name="0.0.0.0", server_port=PORT, share=False,
+                   debug=False, quiet=True, prevent_thread_lock=True,
+                   theme=gr.themes.Base())
+        print("Gradio jalan.")
     except Exception as e:
-        print(f"❌ Gagal launch Gradio: {e}")
+        print(f"Gagal launch Gradio: {e}")
         raise
 
-    # Cloudflare Tunnel
-    print("🌐 Membuka Cloudflare Tunnel...")
+    print("Membuka Cloudflare Tunnel...")
     tunnel = subprocess.Popen(
-        [CLOUDFLARED_BIN, "tunnel",
-         "--url", f"http://127.0.0.1:{PORT}",
+        [CLOUDFLARED_BIN, "tunnel", "--url", f"http://127.0.0.1:{PORT}",
          "--no-autoupdate", "--protocol", "http2"],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
     )
@@ -1492,21 +1474,18 @@ if __name__ == "__main__":
 
     if public_url:
         print("\n" + "=" * 60)
-        print("✅ CLOUDFLARE TUNNEL AKTIF")
-        print(f"🔗 {public_url}")
+        print("CLOUDFLARE TUNNEL AKTIF")
+        print(f"{public_url}")
         print("=" * 60)
         print("Link ini bisa dibuka siapa saja tanpa login Google.")
-        print("Catatan: URL berubah setiap restart runtime.")
     else:
-        print("⚠️ Gagal mendapatkan URL Cloudflare. Cek log tunnel di atas.")
+        print("Gagal mendapatkan URL Cloudflare. Cek log tunnel di atas.")
 
     try:
         tunnel.wait()
     except KeyboardInterrupt:
-        print("\n🛑 Dihentikan user.")
+        print("\nDihentikan user.")
         try:
             tunnel.terminate()
         except Exception:
             pass
-
-  
